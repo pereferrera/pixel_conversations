@@ -1,1 +1,14 @@
-{"name":"pixel-conversations","private":true,"type":"module","scripts":{"test":"node --test"}}
+{
+  "name": "pixel-conversations",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test engine/**/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

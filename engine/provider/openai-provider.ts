@@ -1,12 +1,18 @@
 import { AIProvider } from "./ai-provider.js";
 import { decisionPrompt, DECISION_JSON_SCHEMA } from "../decision/world-rules.js";
+import type { SimulationDecision } from "../state/index.js";
+
+export type FetchImplementation = (input: string | URL | Request, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "text" | "json">>;
 
 /**
  * OpenAI Responses API implementation. Pass an API key at runtime; do not
  * commit it or embed it in client-side production code.
  */
 export class OpenAIProvider extends AIProvider {
-  constructor({ apiKey, model = "gpt-5.6-sol", fetchImpl = globalThis.fetch }) {
+  apiKey: string;
+  model: string;
+  fetch: FetchImplementation;
+  constructor({ apiKey, model = "gpt-5.6-sol", fetchImpl = globalThis.fetch }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation }) {
     super();
     if (!apiKey) throw new TypeError("OpenAIProvider requires an API key.");
     if (typeof fetchImpl !== "function") throw new TypeError("OpenAIProvider requires fetch.");
@@ -15,7 +21,7 @@ export class OpenAIProvider extends AIProvider {
     this.fetch = fetchImpl;
   }
 
-  async decide(context) {
+  async decide(context: unknown): Promise<SimulationDecision> {
     const response = await this.fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {

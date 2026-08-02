@@ -1,7 +1,7 @@
 {
   "id": "daniel-ortiz",
   "identity": { "name": "Daniel Ortiz", "gender": "male", "pronouns": ["he", "him"], "age": 28, "role": "pastry chef" },
-  "portrait": { "silhouette": "broad-shouldered and animated", "visualNotes": ["flour-dusted apron", "bright socks", "box of experimental pastries"] },
+  "portrait": { "silhouette": "broad-shouldered and animated", "dimensionsCm": { "width": 61, "height": 178 }, "visualNotes": ["flour-dusted apron", "bright socks", "box of experimental pastries"] },
   "personality": { "summary": "Generous, theatrical, and a little competitive about making people happy.", "traits": ["hospitable", "dramatic", "resilient"], "tendencies": { "sociability": 0.9, "curiosity": 0.69, "empathy": 0.82, "spontaneity": 0.74, "assertiveness": 0.71, "playfulness": 0.91 } },
   "interests": { "topics": ["desserts", "family rituals", "film musicals", "neighbourhood gossip"], "expertise": ["baking", "flavour pairing"] },
   "conversation": { "style": "expressive storyteller who turns observations into invitations", "likes": ["strong opinions", "feeding guests"], "avoids": ["rudeness to service workers", "taking oneself too seriously"], "signature": "frames a question as a food choice" },

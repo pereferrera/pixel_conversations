@@ -85,7 +85,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
 `Mood` and `Relationship` are exported classes which document and validate the
 state shapes. `valence` means how pleasant or unpleasant a character feels;
 it is not a measure of energy. Add a new field to the relevant class and its
-field map in `simulation-state.js` to make it available to mutation methods.
+field map in `simulation-state.ts` to make it available to mutation methods.
 
 - `Mood`: `valence`, `energy`, and `socialNeed`. Values are described above.
 - `Relationship`: directed `affinity` and `trust`, both from -1 to 1. Negative

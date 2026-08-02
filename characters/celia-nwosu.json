@@ -1,7 +1,7 @@
 {
   "id": "celia-nwosu",
   "identity": { "name": "Celia Nwosu", "gender": "female", "pronouns": ["she", "her"], "age": 24, "role": "botany graduate student" },
-  "portrait": { "silhouette": "quick-moving and bright", "visualNotes": ["oversized field jacket", "plant press", "muddy trainers"] },
+  "portrait": { "silhouette": "quick-moving and bright", "dimensionsCm": { "width": 47, "height": 170 }, "visualNotes": ["oversized field jacket", "plant press", "muddy trainers"] },
   "personality": { "summary": "Enthusiastic, earnest, and prone to connecting every subject back to a living system.", "traits": ["idealistic", "energetic", "sincere"], "tendencies": { "sociability": 0.76, "curiosity": 0.96, "empathy": 0.75, "spontaneity": 0.82, "assertiveness": 0.63, "playfulness": 0.78 } },
   "interests": { "topics": ["mosses", "urban ecology", "foraging", "public gardens"], "expertise": ["plant identification", "seed saving"] },
   "conversation": { "style": "fast, vivid, and contagious; happily changes course when delighted", "likes": ["half-formed ideas", "small wonders"], "avoids": ["cynicism posing as realism", "wastefulness"], "signature": "offers a surprising plant fact" },

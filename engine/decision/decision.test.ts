@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Posture, SimulationState } from "../state/index.js";
+import { ChangeType, Posture, SimulationState } from "../state/index.js";
+import type { SimulationDecision } from "../state/index.js";
+import type { DecisionContext } from "./decision-context.js";
 import { OpenAIProvider } from "../provider/index.js";
 import { SimulationDirector } from "./simulation-director.js";
 import { WorldRuleViolation, WorldRules } from "./world-rules.js";
@@ -26,20 +28,20 @@ test("world rules reject two simultaneous turns in one conversation", () => {
   const state = setup();
   const rules = new WorldRules({ scene, state: state.snapshot() });
   assert.throws(() => rules.assertValid({ summary: "too much", changes: [
-    { type: "say", conversationId: "stars", speakerId: "felix-adebayo", text: "Hello" },
-    { type: "say", conversationId: "stars", speakerId: "grace-kim", text: "Hi" },
+    { type: ChangeType.SAY, conversationId: "stars", speakerId: "felix-adebayo", text: "Hello" },
+    { type: ChangeType.SAY, conversationId: "stars", speakerId: "grace-kim", text: "Hi" },
   ] }), WorldRuleViolation);
 });
 
 test("director gives complete context to a provider and applies only valid changes", async () => {
   const state = setup();
-  let context;
-  const provider = { async decide(received) {
-    context = received;
+  let context!: DecisionContext;
+  const provider = { async decide(received: unknown): Promise<SimulationDecision> {
+    context = received as DecisionContext;
     return { summary: "Felix shares an observation.", changes: [
-      { type: "say", conversationId: "stars", speakerId: "felix-adebayo", text: "The sky is clear tonight." },
-      { type: "remember", characterId: "grace-kim", memory: { summary: "Felix is planning to stargaze.", tags: ["felix-adebayo"] } },
-      { type: "setMood", characterId: "felix-adebayo", mood: { valence: 0.3 } },
+      { type: ChangeType.SAY, conversationId: "stars", speakerId: "felix-adebayo", text: "The sky is clear tonight." },
+      { type: ChangeType.REMEMBER, characterId: "grace-kim", memory: { summary: "Felix is planning to stargaze.", tags: ["felix-adebayo"] } },
+      { type: ChangeType.SET_MOOD, characterId: "felix-adebayo", mood: { valence: 0.3 } },
     ] };
   } };
   const result = await new SimulationDirector({ provider, scene, profiles, state }).decideNext();
@@ -52,10 +54,10 @@ test("director gives complete context to a provider and applies only valid chang
 });
 
 test("OpenAI provider sends the context using a structured Responses request", async () => {
-  let request;
+  let request!: { model: string; text: { format: { type: string } } };
   const provider = new OpenAIProvider({ apiKey: "test-key", model: "test-model", fetchImpl: async (_url, options) => {
-    request = JSON.parse(options.body);
-    return { ok: true, json: async () => ({ output_text: '{"summary":"quiet","changes":[]}' }) };
+    request = JSON.parse(options?.body as string);
+    return { ok: true, status: 200, text: async () => "", json: async () => ({ output_text: '{"summary":"quiet","changes":[]}' }) };
   } });
   const result = await provider.decide({ scene, characters: profiles, state: setup().snapshot(), rules: {} });
   assert.equal(request.model, "test-model");

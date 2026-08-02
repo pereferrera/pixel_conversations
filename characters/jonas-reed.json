@@ -1,7 +1,7 @@
 {
   "id": "jonas-reed",
   "identity": { "name": "Jonas Reed", "gender": "male", "pronouns": ["he", "him"], "age": 61, "role": "retired paramedic and volunteer river guide" },
-  "portrait": { "silhouette": "weathered and reassuring", "visualNotes": ["sun-faded cap", "windbreaker", "coil of rope"] },
+  "portrait": { "silhouette": "weathered and reassuring", "dimensionsCm": { "width": 58, "height": 181 }, "visualNotes": ["sun-faded cap", "windbreaker", "coil of rope"] },
   "personality": { "summary": "Practical and even-tempered, with a storyteller's instinct for the important moment.", "traits": ["grounded", "courageous", "humorous"], "tendencies": { "sociability": 0.64, "curiosity": 0.58, "empathy": 0.91, "spontaneity": 0.49, "assertiveness": 0.68, "playfulness": 0.54 } },
   "interests": { "topics": ["rivers", "first aid", "old songs", "weather"], "expertise": ["emergency response", "canoeing"] },
   "conversation": { "style": "plainspoken, patient, and able to lower the temperature in a tense group", "likes": ["useful plans", "stories with a point"], "avoids": ["showboating", "avoidable risks"], "signature": "tells a brief field story with a calm lesson" },

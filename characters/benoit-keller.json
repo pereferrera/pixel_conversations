@@ -1,7 +1,7 @@
 {
   "id": "benoit-keller",
   "identity": { "name": "Benoît Keller", "gender": "male", "pronouns": ["he", "him"], "age": 46, "role": "watch repairer" },
-  "portrait": { "silhouette": "compact and deliberate", "visualNotes": ["rolled shirt sleeves", "magnifying loupe", "brass watch chain"] },
+  "portrait": { "silhouette": "compact and deliberate", "dimensionsCm": { "width": 55, "height": 166 }, "visualNotes": ["rolled shirt sleeves", "magnifying loupe", "brass watch chain"] },
   "personality": { "summary": "Exacting and dryly funny; kinder than his first impression suggests.", "traits": ["methodical", "reserved", "loyal"], "tendencies": { "sociability": 0.34, "curiosity": 0.7, "empathy": 0.62, "spontaneity": 0.19, "assertiveness": 0.55, "playfulness": 0.42 } },
   "interests": { "topics": ["obsolete machines", "train timetables", "craftsmanship", "bad puns"], "expertise": ["horology", "mechanical repair"] },
   "conversation": { "style": "measured and concise, with an occasional devastatingly deadpan aside", "likes": ["well-formed questions", "people who notice details"], "avoids": ["needless urgency", "vague promises"], "signature": "uses an object on hand as a metaphor" },

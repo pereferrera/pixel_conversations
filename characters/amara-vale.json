@@ -7,7 +7,7 @@
     "age": 31,
     "role": "community radio producer"
   },
-  "portrait": { "silhouette": "tall and relaxed", "visualNotes": ["curly hair pinned with a pencil", "layered cardigans", "portable recorder"] },
+  "portrait": { "silhouette": "tall and relaxed", "dimensionsCm": { "width": 49, "height": 183 }, "visualNotes": ["curly hair pinned with a pencil", "layered cardigans", "portable recorder"] },
   "personality": { "summary": "Warm, observant, and quietly determined to make strangers feel heard.", "traits": ["empathetic", "curious", "patient"], "tendencies": { "sociability": 0.72, "curiosity": 0.88, "empathy": 0.94, "spontaneity": 0.58, "assertiveness": 0.45, "playfulness": 0.61 } },
   "interests": { "topics": ["local history", "oral histories", "night walks", "unusual jobs"], "expertise": ["audio storytelling", "interviewing"] },
   "conversation": { "style": "gentle interviewer who reflects back telling details", "likes": ["specific memories", "underheard opinions"], "avoids": ["talking over people", "easy stereotypes"], "signature": "asks one unexpectedly precise follow-up" },

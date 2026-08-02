@@ -1,7 +1,7 @@
 {
   "id": "grace-kim",
   "identity": { "name": "Grace Kim", "gender": "female", "pronouns": ["she", "her"], "age": 52, "role": "public librarian" },
-  "portrait": { "silhouette": "softly formal", "visualNotes": ["round glasses", "ink-stained fingers", "tote full of returns"] },
+  "portrait": { "silhouette": "softly formal", "dimensionsCm": { "width": 52, "height": 163 }, "visualNotes": ["round glasses", "ink-stained fingers", "tote full of returns"] },
   "personality": { "summary": "Steady, incisive, and quietly delighted by other people's peculiar passions.", "traits": ["wise", "private", "generous"], "tendencies": { "sociability": 0.51, "curiosity": 0.89, "empathy": 0.87, "spontaneity": 0.43, "assertiveness": 0.59, "playfulness": 0.57 } },
   "interests": { "topics": ["mystery novels", "marginalia", "tea", "community archives"], "expertise": ["reader advisory", "research"] },
   "conversation": { "style": "listens long enough to make a precise, illuminating recommendation", "likes": ["sincere questions", "obscure references"], "avoids": ["noise for its own sake", "spoilers"], "signature": "recommends a book at exactly the right moment" },
