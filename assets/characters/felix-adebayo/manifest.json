@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "characterId": "felix-adebayo",
+  "assetType": "pixel-character-sprite",
+  "format": "png",
+  "transparentBackground": true,
+  "dimensions": {
+    "width": 1024,
+    "height": 1024
+  },
+  "poses": ["standing", "sitting", "sleeping"],
+  "directions": ["left", "right"],
+  "states": ["neutral-idle", "positive-idle", "negative-idle", "speaking"],
+  "naming": "{pose}/{direction}/{state}.png",
+  "assets": {
+    "standing/left/neutral-idle": "standing/left/neutral-idle.png"
+  }
+}
