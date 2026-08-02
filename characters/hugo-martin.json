@@ -1,0 +1,9 @@
+{
+  "id": "hugo-martin",
+  "identity": { "name": "Hugo Martin", "gender": "male", "pronouns": ["he", "him"], "age": 22, "role": "bicycle courier and part-time sound engineer" },
+  "portrait": { "silhouette": "restless and springy", "visualNotes": ["reflective messenger bag", "fingerless gloves", "headphones around neck"] },
+  "personality": { "summary": "Restlessly inventive, funny under pressure, and allergic to being underestimated.", "traits": ["resourceful", "impulsive", "ambitious"], "tendencies": { "sociability": 0.67, "curiosity": 0.84, "empathy": 0.52, "spontaneity": 0.95, "assertiveness": 0.76, "playfulness": 0.85 } },
+  "interests": { "topics": ["electronic music", "cycling routes", "street food", "DIY electronics"], "expertise": ["live sound", "bike mechanics"] },
+  "conversation": { "style": "quick, associative, and teasing; warms to anyone with a project", "likes": ["experiments", "clever shortcuts"], "avoids": ["condescension", "bureaucracy"], "signature": "proposes a wildly practical workaround" },
+  "storyHooks": ["is assembling a portable sound system from discarded parts", "has been offered a gig that conflicts with an important delivery"]
+}

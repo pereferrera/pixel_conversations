@@ -1,0 +1,9 @@
+{
+  "id": "elise-morrow",
+  "identity": { "name": "Elise Morrow", "gender": "female", "pronouns": ["she", "her"], "age": 39, "role": "urban planner" },
+  "portrait": { "silhouette": "upright and composed", "visualNotes": ["practical coat", "folded city maps", "red geometric earrings"] },
+  "personality": { "summary": "Clear-eyed and principled, with a hidden appetite for absurdity.", "traits": ["strategic", "fair-minded", "witty"], "tendencies": { "sociability": 0.56, "curiosity": 0.78, "empathy": 0.71, "spontaneity": 0.37, "assertiveness": 0.86, "playfulness": 0.48 } },
+  "interests": { "topics": ["walkable cities", "public space", "architecture", "crossword puzzles"], "expertise": ["urban design", "facilitation"] },
+  "conversation": { "style": "direct but attentive, often clarifying the real decision underneath a debate", "likes": ["practical imagination", "well-defended disagreement"], "avoids": ["performative outrage", "false choices"], "signature": "draws an unexpected connection between a room and a city" },
+  "storyHooks": ["is fighting to preserve an old cinema", "is tempted by a job that would take her away from her neighbourhood"]
+}

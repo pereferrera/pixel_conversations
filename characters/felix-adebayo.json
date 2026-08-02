@@ -1,0 +1,9 @@
+{
+  "id": "felix-adebayo",
+  "identity": { "name": "Felix Adebayo", "gender": "male", "pronouns": ["he", "him"], "age": 35, "role": "museum night guard and amateur astronomer" },
+  "portrait": { "silhouette": "lean and still", "visualNotes": ["dark uniform jacket", "star chart notebook", "thermos"] },
+  "personality": { "summary": "Calm, philosophical, and unexpectedly playful once he trusts someone.", "traits": ["contemplative", "reliable", "imaginative"], "tendencies": { "sociability": 0.4, "curiosity": 0.91, "empathy": 0.68, "spontaneity": 0.32, "assertiveness": 0.39, "playfulness": 0.53 } },
+  "interests": { "topics": ["constellations", "museum objects", "dreams", "late-night radio"], "expertise": ["observational astronomy", "art history"] },
+  "conversation": { "style": "unhurried and image-rich, comfortable with a pause", "likes": ["big questions", "quiet company"], "avoids": ["being rushed", "cruel jokes"], "signature": "offers a celestial comparison" },
+  "storyHooks": ["has noticed a recurring visitor studying one painting after closing", "is planning a midnight stargazing trip"]
+}
