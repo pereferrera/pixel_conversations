@@ -4,9 +4,10 @@
 DOM references, AI clients, or rendering logic. The future engine changes it
 through the mutation API; renderers and prompt builders consume `snapshot()`.
 
-Each scene entry is one concrete, single-occupancy place: a chair, bed, stool,
-or standing spot. A character may move to an occupied place only after its
-current occupant has moved elsewhere.
+Each scene entry is one concrete, single-occupancy place: a seat, bed, stool,
+or named standing spot. It may constrain both posture and facing direction and
+may carry a renderer-only binding to a standing baseline or furniture seat.
+A character may move to an occupied place only after its occupant moves away.
 
 ```js
 import { Posture, SimulationState } from "./engine/state/index.js";
@@ -15,8 +16,8 @@ const state = new SimulationState({
   scene: {
     id: "cafe",
     positions: [
-      { id: "window-chair", allowedPostures: [Posture.SITTING] },
-      { id: "counter-spot", allowedPostures: [Posture.STANDING] },
+      { id: "chair-1/seat", kind: "seat", allowedPostures: [Posture.SITTING], allowedDirections: ["left", "right"] },
+      { id: "floor-center", kind: "standing", allowedPostures: [Posture.STANDING], allowedDirections: ["front", "left", "right"] },
       { id: "back-room-bed", allowedPostures: [Posture.SLEEPING] },
     ],
   },
@@ -33,13 +34,15 @@ runtime state. Stable character ids refer to profiles in `/characters`.
 {
   version: 1,
   sceneId: "cafe",
-  startedAt: "2026-08-02T18:00:00.000Z",
-  elapsedMs: 34_000,
-  paused: false,
+  decisionHistory: [
+    "Felix joined Grace near the counter.",
+    "They began discussing astronomy.",
+  ], // all applied decision summaries
   characters: {
     "felix-adebayo": {
       positionId: "window-chair",
       posture: "sitting",       // standing | sitting | sleeping
+      facing: "left",           // front | left | right
       activity: "talking",      // idle | talking | resting
       mood: {
         valence: 0.4,            // pleasantness: -1 unpleasant, 0 neutral, 1 pleasant
@@ -49,8 +52,6 @@ runtime state. Stable character ids refer to profiles in `/characters`.
       memories: [{
         summary: "Grace recommended a late-night radio programme.",
         importance: 0.7,         // 0 to 1
-        tags: ["grace-kim", "radio"],
-        createdAt: "2026-08-02T18:00:20.000Z",
       }],
       relationships: {
         "grace-kim": { affinity: 0.3, trust: 0.1 }, // each -1 to 1
@@ -70,13 +71,16 @@ runtime state. Stable character ids refer to profiles in `/characters`.
   conversations: {
     stargazing: {
       id: "stargazing",
+      active: true,
       participants: ["felix-adebayo", "grace-kim"],
       topic: "astronomy",
-      startedAt: "2026-08-02T18:00:25.000Z",
-      turns: [{ speakerId: "felix-adebayo", text: "The sky is clear tonight.", at: "2026-08-02T18:00:34.000Z" }],
+      beats: [
+        { type: "say", speakerId: "felix-adebayo", text: "The sky is clear tonight." },
+        { type: "pause" },
+      ],
     },
   },
-  events: [{ type: "inspiration", summary: "Felix notices a familiar constellation.", participants: ["felix-adebayo"], at: "2026-08-02T18:00:30.000Z" }],
+  events: [{ type: "inspiration", summary: "Felix notices a familiar constellation.", participants: ["felix-adebayo"] }],
 }
 ```
 
@@ -95,7 +99,23 @@ field map in `simulation-state.ts` to make it available to mutation methods.
 
 Use `placeCharacter`, `setPosture`, `setMood`, `remember`,
 `updateRelationship`, conversation methods, and `addEvent` rather than changing
-a snapshot. Mutations validate ids, posture support, one-person places, value
-ranges, active-conversation membership, and bounded memories. `tick(ms)` only
-advances simulation time while unpaused; event and conversation scheduling
-belongs to the future engine.
+a snapshot. Mutations validate ids, posture and facing support, one-person places, value
+ranges, active-conversation membership, and bounded memories. Applied decisions
+are recorded with `recordDecision(summary)` and retained in full. Prompt
+builders independently select the configured number of recent summaries.
+
+The state intentionally has no world clock, timestamps, elapsed duration, or
+pause flag. Beat-array order provides conversational ordering, and
+`conversation.active` represents lifecycle. User-facing pacing belongs to the
+future renderer/application rather than this state machine.
+
+Memories contain only `summary` and `importance`. Their default per-character
+capacity comes from `DEFAULT_SIMULATION_TUNING.memoryLimitPerCharacter` and
+may still be overridden with the `SimulationState` constructor's
+`memoryLimit`. When capacity is exceeded, the least-important memory is
+removed; ties remove the oldest array entry.
+
+Conversation `beats` preserve ordered presentation state. A `say` beat stores
+exact dialogue and its speaker; a `pause` beat records an active listening or
+reflective step with no speech. Consecutive `say` beats may use the same
+speaker.

@@ -1,15 +1,83 @@
 import { WorldRules } from "./world-rules.js";
-import { ChangeType } from "../state/index.js";
-import type { CharacterProfile, Scene, SimulationSnapshot } from "../state/index.js";
+import { ChangeType, Posture } from "../state/index.js";
+import type { CharacterProfile, ConversationPair, FacingDirection, PostureValue, Scene, SimulationSnapshot } from "../state/index.js";
 
-export interface DecisionContext {
-  scene: Scene;
-  characters: CharacterProfile[];
-  state: SimulationSnapshot;
-  rules: { allowedChanges: ChangeType[]; description: string };
+export interface DecisionPosition {
+  id: string;
+  label: string;
+  kind: "standing" | "seat";
+  allowedPostures: PostureValue[];
+  allowedDirections: FacingDirection[];
+  occupiedBy: string | null;
 }
 
-/** Packages every fact the model needs without exposing mutable state. */
+export interface ActionDefinition {
+  type: ChangeType;
+  description: string;
+  fields: Record<string, string>;
+  constraints?: string[];
+}
+
+export const ACTION_CATALOG: Record<ChangeType, ActionDefinition> = {
+  [ChangeType.SAY]: {
+    type: ChangeType.SAY,
+    description: "Record the exact words one participant speaks in an active or just-started conversation.",
+    fields: { conversationId: "active conversation id, equal to startConversation.id when just started", speakerId: "participant character id", text: "exact non-empty spoken dialogue" },
+    constraints: ["This is the only action that records spoken dialogue.", "Place it after startConversation when opening a new conversation."],
+  },
+  [ChangeType.REMEMBER]: {
+    type: ChangeType.REMEMBER,
+    description: "Store a rare, durable memory for one character.",
+    fields: { characterId: "character id", memory: "{ summary: string, importance?: 0..1 }" },
+    constraints: ["Use after a conversation ends or for a genuinely extraordinary event or sentence.", "Do not create routine memories."],
+  },
+  [ChangeType.SET_MOOD]: { type: ChangeType.SET_MOOD, description: "Update one or more immediate mood dimensions.", fields: { characterId: "character id", mood: "{ valence?: -1..1, energy?: 0..1, socialNeed?: 0..1 }" } },
+  [ChangeType.UPDATE_RELATIONSHIP]: { type: ChangeType.UPDATE_RELATIONSHIP, description: "Update one character's directed relationship toward another.", fields: { fromId: "character id", toId: "different character id", relationship: "{ affinity?: -1..1, trust?: -1..1 }" } },
+  [ChangeType.PLACE_CHARACTER]: {
+    type: ChangeType.PLACE_CHARACTER,
+    description: "Move or place a character at a scene position.",
+    fields: { characterId: "character id", positionId: "scene position id", posture: "posture allowed by that position", facing: "optional direction allowed by that position" },
+    constraints: ["A position holds one character.", "Use this action to move between standing positions and seats."],
+  },
+  [ChangeType.SET_POSTURE]: { type: ChangeType.SET_POSTURE, description: "Change posture without changing the current position.", fields: { characterId: "placed character id", posture: "posture allowed by the current position" } },
+  [ChangeType.START_CONVERSATION]: {
+    type: ChangeType.START_CONVERSATION,
+    description: "Create the conversation object and assign its id to all participants.",
+    fields: { id: "new unique conversation id; later say/endConversation actions use this as conversationId", participants: "exactly two unique, placed, available character ids", topic: "optional topic label, never dialogue" },
+    constraints: ["This is the only action that creates a conversation.", "Participants must already occupy one scene conversationPair with its exact facings.", "Follow it with say to record the opening words."],
+  },
+  [ChangeType.END_CONVERSATION]: {
+    type: ChangeType.END_CONVERSATION,
+    description: "Close an active conversation and release its participants.",
+    fields: { conversationId: "active conversation id" },
+    constraints: ["This is the only action that ends a conversation.", "Do not use addEvent to end one."],
+  },
+  [ChangeType.PAUSE_CONVERSATION]: {
+    type: ChangeType.PAUSE_CONVERSATION,
+    description: "Advance an active conversation by one attentive beat in which nobody speaks.",
+    fields: { conversationId: "active conversation id" },
+    constraints: ["Use for a meaningful listening or reflective beat.", "Do not pair with say for the same conversation in one step."],
+  },
+  [ChangeType.ADD_EVENT]: {
+    type: ChangeType.ADD_EVENT,
+    description: "Record a meaningful non-conversation world occurrence.",
+    fields: { event: "{ type: string, summary: string, participants?: character id[] }" },
+    constraints: ["Never use this for speech, dialogue, starting a conversation, or ending a conversation.", "Narrated speech is not a substitute for a say action with exact text."],
+  },
+};
+
+export interface DecisionContext {
+  scene: { id: string; positions: DecisionPosition[]; conversationPairs: ConversationPair[] };
+  characters: CharacterProfile[];
+  state: SimulationSnapshot;
+  rules: {
+    allowedChanges: ChangeType[];
+    constraints: string[];
+    actions: Record<ChangeType, ActionDefinition>;
+  };
+}
+
+/** Packages model-relevant semantics while withholding renderer-only geometry. */
 export function buildDecisionContext({ scene, profiles, state }: { scene: Scene; profiles: CharacterProfile[]; state: SimulationSnapshot }): DecisionContext {
   if (!scene?.id || !Array.isArray(scene.positions)) throw new TypeError("A scene definition is required.");
   if (!Array.isArray(profiles)) throw new TypeError("Character profiles are required.");
@@ -18,11 +86,34 @@ export function buildDecisionContext({ scene, profiles, state }: { scene: Scene;
   for (const characterId of Object.keys(snapshot.characters)) {
     if (!profileIds.has(characterId)) throw new RangeError(`Missing profile for ${characterId}.`);
   }
+  const positions = scene.positions.map((position): DecisionPosition => ({
+    id: position.id,
+    label: position.label ?? position.id,
+    kind: position.kind ?? "standing",
+    allowedPostures: structuredClone(position.allowedPostures ?? Object.values(Posture)),
+    allowedDirections: structuredClone(position.allowedDirections ?? ["front", "left", "right"]),
+    occupiedBy: Object.entries(snapshot.characters).find(([, character]) => character.positionId === position.id)?.[0] ?? null,
+  }));
   return {
-    scene: structuredClone(scene),
+    scene: { id: scene.id, positions, conversationPairs: structuredClone(scene.conversationPairs) },
     characters: structuredClone(profiles),
     state: snapshot,
-    rules: { allowedChanges: Object.values(ChangeType), description: "Only one speaker may add a turn to the same conversation in one step. Every scene place holds one character." },
+    rules: {
+      allowedChanges: Object.values(ChangeType),
+      constraints: [
+        "Return between 1 and 12 changes.",
+        "Only one speaker may add a turn to the same conversation in one step.",
+        "Every scene position holds one character.",
+        "A conversation has exactly two participants. Before startConversation, place them in one scene.conversationPairs arrangement with the listed facing for each position.",
+        "Conversation participants cannot move until endConversation releases them.",
+        "Only startConversation creates conversations, only say records exact spoken words, and only endConversation closes conversations.",
+        "pauseConversation represents one active-conversation beat with no speech.",
+        "addEvent never represents dialogue or conversation lifecycle.",
+        "Every change object must use the field \"type\" as its action discriminator; never use \"action\".",
+        "Use only ids, postures, and directions present in this context.",
+      ],
+      actions: structuredClone(ACTION_CATALOG),
+    },
   };
 }
 

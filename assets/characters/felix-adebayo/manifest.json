@@ -1,18 +1,23 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "characterId": "felix-adebayo",
-  "assetType": "pixel-character-sprite",
+  "assetType": "pixel-character-sprite-set",
   "format": "png",
   "transparentBackground": true,
-  "dimensions": {
-    "width": 1024,
-    "height": 1024
-  },
-  "poses": ["standing", "sitting", "sleeping"],
-  "directions": ["left", "right"],
-  "states": ["neutral-idle", "positive-idle", "negative-idle", "speaking"],
-  "naming": "{pose}/{direction}/{state}.png",
+  "logicalCanvas": {"width": 48, "height": 128},
+  "resampling": "nearest-neighbour",
+  "standing": {"footBaselineY": 111, "horizontalCenterX": 24, "opaqueTarget": {"width": 23, "height": 96}},
+  "sitting": {"seatContactAnchors": {"left": {"x": 34, "y": 74}, "right": {"x": 13, "y": 74}}, "opaqueTarget": {"width": 34, "height": 72}},
+  "sittingSleeping": {"seatContactAnchors": {"left": {"x": 34, "y": 74}, "right": {"x": 13, "y": 74}}, "opaqueTarget": {"width": 34, "height": 68}},
+  "directionPolicy": "right-facing side sprites are exact horizontal mirrors of left-facing finals",
   "assets": {
-    "standing/left/neutral-idle": "standing/left/neutral-idle.png"
-  }
+    "standing/left": "standing/left/neutral-idle.png",
+    "standing/right": "standing/right/neutral-idle.png",
+    "standing/front": "standing/front/neutral-idle.png",
+    "sitting/left": "sitting/left/neutral-idle.png",
+    "sitting/right": "sitting/right/neutral-idle.png",
+    "sitting-sleeping/left": "sitting-sleeping/left/sleeping.png",
+    "sitting-sleeping/right": "sitting-sleeping/right/sleeping.png"
+  },
+  "legacyAssets": {"standing/left/neutral-idle-minimal-v3.png": "non-canonical prototype retained for comparison"}
 }

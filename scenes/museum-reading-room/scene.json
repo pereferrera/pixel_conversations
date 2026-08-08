@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 2,
+  "id": "museum-reading-room",
+  "canvas": {
+    "width": 1152, "height": 648, "origin": "top-left",
+    "pixelsPerCm": 0.957446,
+    "characterScaleMode": "fixed-within-scene",
+    "characterDisplayScale": 1.875,
+    "elementDisplayScale": 1.5,
+    "standingSpriteCanvas": {"width": 90, "height": 240, "baselineY": 208},
+    "depthSort": "ascending-depthBaselineY",
+    "perspective": "zelda-style-fake-top-down-three-quarter",
+    "uprightScreenAxis": "vertical",
+    "mainEdgeAxes": ["horizontal", "vertical"],
+    "trueProjection": false,
+    "backgroundLogicalGrid": {"width": 576, "height": 324, "displayScale": 2}
+  },
+  "assets": {
+    "background": "../../assets/scenes/museum-reading-room/background.png",
+    "example": "../../assets/scenes/museum-reading-room/example.png"
+  },
+  "standingArea": {"anchor": "character-foot-baseline", "polygons": [[[90, 348], [1062, 348], [1062, 585], [90, 585]]]},
+  "elementPlacementAreas": [
+    {"id": "left-reading-area", "allowedElementTypes": ["burgundy-reading-chair", "navy-reading-bench"], "polygon": [[108, 365], [480, 365], [480, 555], [108, 555]]},
+    {"id": "central-reading-area", "allowedElementTypes": ["burgundy-reading-chair", "navy-reading-bench"], "polygon": [[482, 380], [782, 380], [782, 585], [482, 585]]},
+    {"id": "right-reading-area", "allowedElementTypes": ["burgundy-reading-chair"], "polygon": [[784, 365], [1044, 365], [1044, 555], [784, 555]]}
+  ],
+  "elementTypes": {
+    "burgundy-reading-chair": {
+      "asset": "../../assets/scenes/museum-reading-room/elements/burgundy-reading-chair.png",
+      "canvas": {"width": 96, "height": 96},
+      "placementAnchor": {"x": 48, "y": 96}, "depthBaselineY": 87,
+      "footprint": [[-36, -27], [36, -27], [42, 0], [-42, 0]],
+      "geometry": {"rotationDeg": 0, "skewDeg": 0, "mainEdges": "screen-orthogonal", "depthMethod": "stepped-offsets-shading-foreshortening"},
+      "seatCapacity": 1,
+      "seats": [{"id": "seat", "seatIndex": 0, "contactAnchor": {"x": 48, "y": 46}, "allowedOccupantDirections": ["left", "right"], "clearance": {"x": 14, "y": 8, "width": 68, "height": 82}}]
+    },
+    "navy-reading-bench": {
+      "asset": "../../assets/scenes/museum-reading-room/elements/navy-reading-bench.png",
+      "canvas": {"width": 192, "height": 96},
+      "placementAnchor": {"x": 96, "y": 96}, "depthBaselineY": 87,
+      "footprint": [[-81, -27], [81, -27], [90, 0], [-90, 0]],
+      "geometry": {"rotationDeg": 0, "skewDeg": 0, "mainEdges": "screen-orthogonal", "depthMethod": "stepped-offsets-shading-foreshortening"},
+      "seatCapacity": 2,
+      "seats": [
+        {"id": "left-seat", "seatIndex": 0, "contactAnchor": {"x": 63, "y": 48}, "allowedOccupantDirections": ["left", "right"], "clearance": {"x": 18, "y": 8, "width": 72, "height": 82}},
+        {"id": "right-seat", "seatIndex": 1, "contactAnchor": {"x": 129, "y": 48}, "allowedOccupantDirections": ["left", "right"], "clearance": {"x": 102, "y": 8, "width": 72, "height": 82}}
+      ]
+    }
+  },
+  "positions": [
+    {"id": "floor-left", "label": "Open floor by the left reading area", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": {"kind": "standing", "baseline": {"x": 385, "y": 535}}},
+    {"id": "floor-center", "label": "Open floor in the center", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": {"kind": "standing", "baseline": {"x": 790, "y": 560}}},
+    {"id": "floor-right", "label": "Open floor by the right reading area", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": {"kind": "standing", "baseline": {"x": 1010, "y": 525}}},
+    {"id": "bench-1/left-seat", "label": "Left seat of the navy bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": {"kind": "seat", "elementInstanceId": "bench-1", "seatId": "left-seat"}},
+    {"id": "bench-1/right-seat", "label": "Right seat of the navy bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": {"kind": "seat", "elementInstanceId": "bench-1", "seatId": "right-seat"}},
+    {"id": "chair-1/seat", "label": "Seat of the right reading chair", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": {"kind": "seat", "elementInstanceId": "chair-1", "seatId": "seat"}},
+    {"id": "chair-2/seat", "label": "Seat of the center reading chair", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": {"kind": "seat", "elementInstanceId": "chair-2", "seatId": "seat"}}
+  ],
+  "conversationPairs": [
+    {"positions": ["bench-1/left-seat", "bench-1/right-seat"], "facings": ["right", "left"]},
+    {"positions": ["bench-1/right-seat", "floor-left"], "facings": ["right", "left"]},
+    {"positions": ["chair-2/seat", "floor-center"], "facings": ["right", "left"]},
+    {"positions": ["floor-center", "chair-1/seat"], "facings": ["right", "left"]},
+    {"positions": ["chair-1/seat", "floor-right"], "facings": ["right", "left"]},
+    {"positions": ["floor-left", "floor-center"], "facings": ["right", "left"]},
+    {"positions": ["floor-center", "floor-right"], "facings": ["right", "left"]}
+  ],
+  "capacityGuidance": {"comfortableCharacterCount": 5, "busyCharacterCount": 10, "comfortableBaselineSpacingPx": 180, "busyBaselineSpacingPx": 90},
+  "example": {
+    "characterSourcePolicy": "felix-final-plus-four-preview-only-lineup-cutouts",
+    "instances": [
+      {"id": "bench-1", "kind": "element", "type": "navy-reading-bench", "anchor": {"x": 240, "y": 430}, "depthBaselineY": 424},
+      {"id": "chair-1", "kind": "element", "type": "burgundy-reading-chair", "anchor": {"x": 900, "y": 470}, "depthBaselineY": 464},
+      {"id": "amara-preview", "kind": "standing-character", "characterId": "amara-vale", "baseline": {"x": 170, "y": 500}, "depthBaselineY": 500},
+      {"id": "felix-final", "kind": "sitting-character", "characterId": "felix-adebayo", "asset": "../../assets/characters/felix-adebayo/sitting/left/neutral-idle.png", "seatBinding": {"elementInstanceId": "chair-1", "seatId": "seat"}, "seatAnchorWorld": {"x": 900, "y": 420}, "characterContactAnchorLogical": {"x": 34, "y": 74}, "characterContactAnchorDisplayed": {"x": 64, "y": 139}, "computedTopLeft": {"x": 836, "y": 281}, "depthBaselineY": 465},
+      {"id": "hugo-preview", "kind": "standing-character", "characterId": "hugo-martin", "baseline": {"x": 1010, "y": 525}, "depthBaselineY": 525},
+      {"id": "benoit-preview", "kind": "standing-character", "characterId": "benoit-keller", "baseline": {"x": 385, "y": 535}, "depthBaselineY": 535},
+      {"id": "elise-preview", "kind": "standing-character", "characterId": "elise-morrow", "baseline": {"x": 790, "y": 560}, "depthBaselineY": 560},
+      {"id": "chair-2", "kind": "element", "type": "burgundy-reading-chair", "anchor": {"x": 650, "y": 570}, "depthBaselineY": 564}
+    ]
+  }
+}

@@ -1,6 +1,7 @@
 import { AIProvider } from "./ai-provider.js";
 import { decisionPrompt, DECISION_JSON_SCHEMA } from "../decision/world-rules.js";
 import type { SimulationDecision } from "../state/index.js";
+import type { SimulationTuning } from "../decision/simulation-tuning.js";
 
 export type FetchImplementation = (input: string | URL | Request, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "text" | "json">>;
 
@@ -12,13 +13,16 @@ export class OpenAIProvider extends AIProvider {
   apiKey: string;
   model: string;
   fetch: FetchImplementation;
-  constructor({ apiKey, model = "gpt-5.6-sol", fetchImpl = globalThis.fetch }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation }) {
+  tuning: Partial<SimulationTuning>;
+  constructor({ apiKey, model = "gpt-5.6-sol", fetchImpl, tuning = {} }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation; tuning?: Partial<SimulationTuning> }) {
     super();
     if (!apiKey) throw new TypeError("OpenAIProvider requires an API key.");
-    if (typeof fetchImpl !== "function") throw new TypeError("OpenAIProvider requires fetch.");
+    const resolvedFetch = fetchImpl ?? globalThis.fetch?.bind(globalThis);
+    if (typeof resolvedFetch !== "function") throw new TypeError("OpenAIProvider requires fetch.");
     this.apiKey = apiKey;
     this.model = model;
-    this.fetch = fetchImpl;
+    this.fetch = resolvedFetch;
+    this.tuning = { ...tuning };
   }
 
   async decide(context: unknown): Promise<SimulationDecision> {
@@ -32,7 +36,7 @@ export class OpenAIProvider extends AIProvider {
         model: this.model,
         input: [
           { role: "system", content: "You choose the next small, plausible changes in a quiet character simulation. Return only the requested structured decision. Never invent ids." },
-          { role: "user", content: decisionPrompt(context) },
+          { role: "user", content: decisionPrompt(context, this.tuning) },
         ],
         text: { format: { type: "json_schema", name: "simulation_decision", strict: false, schema: DECISION_JSON_SCHEMA } },
       }),
@@ -40,7 +44,24 @@ export class OpenAIProvider extends AIProvider {
 
     if (!response.ok) throw new Error(`OpenAI request failed (${response.status}): ${await response.text()}`);
     const payload = await response.json();
-    if (!payload.output_text) throw new Error("OpenAI response did not contain output_text.");
-    return JSON.parse(payload.output_text);
+    const outputText = responseOutputText(payload);
+    if (!outputText) throw new Error("OpenAI response did not contain text output.");
+    return JSON.parse(outputText);
   }
+}
+
+/**
+ * The REST API returns text in output message content. Official SDKs also add
+ * an output_text convenience property, which we accept for injected clients.
+ */
+function responseOutputText(payload: any): string | null {
+  if (typeof payload?.output_text === "string" && payload.output_text.length) return payload.output_text;
+  if (!Array.isArray(payload?.output)) return null;
+
+  const text = payload.output
+    .flatMap((item: any) => Array.isArray(item?.content) ? item.content : [])
+    .filter((part: any) => part?.type === "output_text" && typeof part.text === "string")
+    .map((part: any) => part.text)
+    .join("");
+  return text || null;
 }

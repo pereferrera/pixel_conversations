@@ -1,0 +1,58 @@
+{
+  "scene": {
+    "id": "community-cafe",
+    "positions": [
+      { "id": "floor-left", "label": "Open floor by the left lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 389, "y": 510 } } },
+      { "id": "floor-center", "label": "Open floor in the center", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 659, "y": 548 } } },
+      { "id": "floor-right", "label": "Open floor by the right lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 1011, "y": 570 } } },
+      { "id": "bench-1/left-seat", "label": "Left seat of the teal bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "bench-1", "seatId": "left-seat" } },
+      { "id": "bench-1/right-seat", "label": "Right seat of the teal bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "bench-1", "seatId": "right-seat" } },
+      { "id": "chair-1/seat", "label": "Seat of the right lounge chair", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "chair-1", "seatId": "seat" } },
+      { "id": "chair-2/seat", "label": "Seat of the center chair", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "chair-2", "seatId": "seat" } }
+    ],
+    "conversationPairs": [
+      { "positions": ["bench-1/left-seat", "bench-1/right-seat"], "facings": ["right", "left"] },
+      { "positions": ["bench-1/left-seat", "floor-left"], "facings": ["right", "left"] },
+      { "positions": ["bench-1/right-seat", "floor-left"], "facings": ["right", "left"] },
+      { "positions": ["chair-2/seat", "floor-center"], "facings": ["right", "left"] },
+      { "positions": ["chair-1/seat", "floor-right"], "facings": ["right", "left"] },
+      { "positions": ["floor-left", "floor-center"], "facings": ["right", "left"] },
+      { "positions": ["floor-center", "floor-right"], "facings": ["right", "left"] },
+      { "positions": ["chair-2/seat", "chair-1/seat"], "facings": ["right", "left"] }
+    ]
+  },
+  "profiles": [
+    {
+      "id": "felix-adebayo",
+      "identity": { "name": "Felix Adebayo", "role": "museum night guard and amateur astronomer" },
+      "personality": { "summary": "Calm, philosophical, and quietly playful." },
+      "conversation": { "style": "Unhurried and image-rich." },
+      "assetStatus": { "kind": "production", "manifest": "assets/characters/felix-adebayo/manifest.json" }
+    },
+    {
+      "id": "grace-kim",
+      "identity": { "name": "Grace Kim", "role": "community radio producer" },
+      "personality": { "summary": "Warm, curious, and observant." },
+      "conversation": { "style": "Friendly and direct." },
+      "assetStatus": { "kind": "production", "manifest": "assets/characters/grace-kim/manifest.json" }
+    }
+  ],
+  "rendering": {
+    "sceneDefinition": "/scenes/community-cafe/scene.json",
+    "characterManifests": {
+      "felix-adebayo": "/assets/characters/felix-adebayo/manifest.json",
+      "grace-kim": "/assets/characters/grace-kim/manifest.json"
+    }
+  },
+  "state": {
+    "version": 1,
+    "sceneId": "community-cafe",
+    "decisionHistory": [],
+    "characters": {
+      "felix-adebayo": { "positionId": "chair-2/seat", "posture": "sitting", "facing": "left", "activity": "idle", "mood": { "valence": 0.2, "energy": 0.5, "socialNeed": 0.6 }, "memories": [], "relationships": {}, "conversationId": null },
+      "grace-kim": { "positionId": "floor-center", "posture": "standing", "facing": "front", "activity": "idle", "mood": { "valence": 0.4, "energy": 0.7, "socialNeed": 0.4 }, "memories": [], "relationships": {}, "conversationId": null }
+    },
+    "conversations": {},
+    "events": []
+  }
+}

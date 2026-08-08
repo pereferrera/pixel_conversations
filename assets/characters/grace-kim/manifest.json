@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 3,
+  "characterId": "grace-kim",
+  "assetType": "pixel-character-sprite-set",
+  "format": "png",
+  "transparentBackground": true,
+  "logicalCanvas": {"width": 48, "height": 128},
+  "resampling": "nearest-neighbour",
+  "standing": {"footBaselineY": 111, "horizontalCenterX": 24, "opaqueTarget": {"width": 30, "height": 96}},
+  "sitting": {"seatContactAnchors": {"left": {"x": 34, "y": 74}, "right": {"x": 13, "y": 74}}, "opaqueTarget": {"width": 34, "height": 67}},
+  "sittingSleeping": {"seatContactAnchors": {"left": {"x": 34, "y": 74}, "right": {"x": 13, "y": 74}}, "opaqueTarget": {"width": 23, "height": 68}},
+  "directionPolicy": "right-facing side sprites are exact horizontal mirrors of left-facing finals",
+  "assets": {
+    "standing/left": "standing/left/neutral-idle.png",
+    "standing/right": "standing/right/neutral-idle.png",
+    "standing/front": "standing/front/neutral-idle.png",
+    "sitting/left": "sitting/left/neutral-idle.png",
+    "sitting/right": "sitting/right/neutral-idle.png",
+    "sitting-sleeping/left": "sitting-sleeping/left/sleeping.png",
+    "sitting-sleeping/right": "sitting-sleeping/right/sleeping.png"
+  }
+}

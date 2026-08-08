@@ -8,6 +8,13 @@ The experience is intentionally minimalistic and atmospheric. Rather than focusi
 
 Everything runs entirely in the browser.
 
+## State machine debugger
+
+A small browser app for stepping a JSON world through the configured AI
+provider lives in [`debug/`](debug/README.md). Run `npm run debug`, then open
+<http://localhost:4173/debug/>. The app loads an example world by default and
+can load another local JSON file.
+
 ---
 
 # Project Goals
@@ -158,6 +165,7 @@ The project is organized into small, focused modules.
 ├── engine
 │   ├── provider
 │   └── state
+├── rendering
 ├── characters
 ├── audio
 └── control
@@ -226,6 +234,22 @@ Examples include:
 - simulation parameters
 
 This module contains no rendering logic.
+
+---
+
+## `/rendering`
+
+Contains browser-side visual composition behind a small PNG-rendering API.
+
+Responsibilities:
+
+- loading scene and character assets from their manifests
+- translating world positions into sprite coordinates
+- depth-ordering scene elements and characters
+- rendering the latest spoken conversation beat
+- producing a PNG from the current world snapshot
+
+UI code consumes this API and does not contain canvas or placement rules.
 
 ---
 

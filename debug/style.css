@@ -1,0 +1,34 @@
+:root { color-scheme: dark; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #111318; color: #e8eaf0; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(1500px, 100%); margin: auto; padding: 24px; }
+header { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+h1 { margin: 4px 0 16px; font: 600 28px/1.2 system-ui, sans-serif; }
+.eyebrow { margin: 0; color: #8f9aaf; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
+#status { color: #98a6be; padding-bottom: 18px; }
+#status.error { color: #ff8e8e; }
+.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 16px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
+.controls label { display: grid; gap: 6px; color: #aeb6c6; font-size: 12px; }
+input, button, textarea { border: 1px solid #3a4251; border-radius: 5px; background: #101319; color: inherit; font: inherit; }
+input, button { min-height: 38px; padding: 8px 10px; }
+button { border-color: #6372e7; background: #5362d8; cursor: pointer; font-weight: 700; }
+button:hover { background: #6372e7; }
+button:disabled { opacity: .55; cursor: wait; }
+.hint { margin: 12px 0; color: #8f9aaf; font: 13px/1.5 system-ui, sans-serif; }
+.world-preview { margin: 16px 0; padding: 12px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
+.world-preview h2 { margin: 0; color: #aeb6c6; font-size: 13px; font-weight: 400; }
+.world-preview img { display: block; width: 100%; height: auto; margin-top: 10px; border-radius: 4px; background: #101319; image-rendering: pixelated; }
+.panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.panel { display: grid; grid-template-rows: auto 1fr; gap: 8px; }
+.panel > span { color: #aeb6c6; font-size: 13px; }
+.panel-title { display: flex; justify-content: space-between; gap: 12px; }
+.panel-title small { color: #788398; font-weight: 400; }
+.state-panel { grid-row: span 2; }
+.history-panel { min-height: 220px; }
+.history-panel ol { min-height: 180px; max-height: 420px; margin: 0; padding: 14px 14px 14px 48px; overflow: auto; border: 1px solid #3a4251; border-radius: 5px; background: #101319; line-height: 1.45; }
+.history-panel li { padding: 0 0 10px 4px; }
+.history-panel li:last-child { padding-bottom: 0; }
+textarea { width: 100%; min-height: 300px; padding: 14px; resize: vertical; line-height: 1.45; tab-size: 2; }
+.state-panel textarea { min-height: 650px; }
+textarea:focus, input:focus { outline: 2px solid #6372e7; outline-offset: 1px; }
+@media (max-width: 850px) { .panels { grid-template-columns: 1fr; } .state-panel { grid-row: auto; } }

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Machine Debugger</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div><p class="eyebrow">Pixel Conversations</p><h1>State machine debugger</h1></div>
+        <span id="status" role="status">Loading example…</span>
+      </header>
+      <section class="controls" aria-label="Debugger controls">
+        <label>World JSON <input id="world-file" type="file" accept=".json,application/json"></label>
+        <label>Model <input id="model" value="gpt-5.6-luna"></label>
+        <button id="simulate" type="button">Simulate next step</button>
+      </section>
+      <p class="hint">The local server reads OPENAI_API_KEY from its environment. Edit the current state before simulating to test another valid snapshot.</p>
+      <section class="world-preview" aria-labelledby="world-preview-title">
+        <div class="panel-title"><h2 id="world-preview-title">Rendered world</h2><small id="rendering-meta">Rendering…</small></div>
+        <img id="world-image" alt="Rendered current world state">
+      </section>
+      <section class="panels">
+        <label class="panel state-panel"><span>Current world state</span><textarea id="world-state" spellcheck="false" aria-label="Current world state JSON"></textarea></label>
+        <label class="panel">
+          <span>Provider request / prompt</span>
+          <textarea id="provider-request" spellcheck="false" readonly aria-label="Provider request JSON">No request yet.</textarea>
+        </label>
+        <label class="panel">
+          <span class="panel-title">Raw provider response <small id="response-meta"></small></span>
+          <textarea id="raw-response" spellcheck="false" readonly aria-label="Raw provider response JSON">No response yet.</textarea>
+        </label>
+        <label class="panel"><span>Parsed actions</span><textarea id="actions" spellcheck="false" readonly aria-label="Parsed actions JSON">[]</textarea></label>
+        <section class="panel history-panel" aria-labelledby="history-title">
+          <span class="panel-title" id="history-title">Simulated event summaries <small><span id="history-count">0</span> total</small></span>
+          <ol id="simulation-history" aria-label="All simulated event summaries"></ol>
+        </section>
+      </section>
+    </main>
+    <script type="module" src="../.debug-build/debug/app.js"></script>
+  </body>
+</html>
