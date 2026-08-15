@@ -7,17 +7,30 @@ h1 { margin: 4px 0 16px; font: 600 28px/1.2 system-ui, sans-serif; }
 .eyebrow { margin: 0; color: #8f9aaf; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
 #status { color: #98a6be; padding-bottom: 18px; }
 #status.error { color: #ff8e8e; }
-.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 16px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
+.controls { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(180px, .65fr) minmax(220px, .8fr); grid-template-areas: "file model action" "tendency pomposity dynamic"; align-items: end; gap: 18px 16px; padding: 16px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
 .controls label { display: grid; gap: 6px; color: #aeb6c6; font-size: 12px; }
+.file-control { grid-area: file; }
+.model-control { grid-area: model; }
+.world-tendency-control { grid-area: tendency; }
+.pomposity-control { grid-area: pomposity; }
+.dynamic-control { grid-area: dynamic; }
+.simulate-control { grid-area: action; width: 220px; justify-self: start; }
+.tendency-control span { display: flex; justify-content: space-between; gap: 12px; }
+.tendency-control small { min-height: 2.8em; color: #8f9aaf; font: 12px/1.4 system-ui, sans-serif; }
+.tendency-control output { color: #e8eaf0; font-weight: 700; }
+.tendency-control input { min-height: 38px; padding: 0; accent-color: #6372e7; }
+.tendency-control .range-labels { align-items: start; color: #788398; font-size: 10px; line-height: 1.25; }
+.tendency-control .range-labels span { display: block; max-width: 48%; }
+.tendency-control .range-labels span:last-child { text-align: right; }
 input, button, textarea { border: 1px solid #3a4251; border-radius: 5px; background: #101319; color: inherit; font: inherit; }
 input, button { min-height: 38px; padding: 8px 10px; }
 button { border-color: #6372e7; background: #5362d8; cursor: pointer; font-weight: 700; }
 button:hover { background: #6372e7; }
 button:disabled { opacity: .55; cursor: wait; }
 .hint { margin: 12px 0; color: #8f9aaf; font: 13px/1.5 system-ui, sans-serif; }
-.world-preview { margin: 16px 0; padding: 12px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
+.world-preview { margin: 16px 0; padding: 12px; overflow-x: auto; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
 .world-preview h2 { margin: 0; color: #aeb6c6; font-size: 13px; font-weight: 400; }
-.world-preview img { display: block; width: 100%; height: auto; margin-top: 10px; border-radius: 4px; background: #101319; image-rendering: pixelated; }
+.world-preview img { display: block; width: 1152px; height: 648px; max-width: none; margin: 10px auto 0; border-radius: 4px; background: #101319; image-rendering: pixelated; }
 .panels { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .panel { display: grid; grid-template-rows: auto 1fr; gap: 8px; }
 .panel > span { color: #aeb6c6; font-size: 13px; }
@@ -31,4 +44,9 @@ button:disabled { opacity: .55; cursor: wait; }
 textarea { width: 100%; min-height: 300px; padding: 14px; resize: vertical; line-height: 1.45; tab-size: 2; }
 .state-panel textarea { min-height: 650px; }
 textarea:focus, input:focus { outline: 2px solid #6372e7; outline-offset: 1px; }
-@media (max-width: 850px) { .panels { grid-template-columns: 1fr; } .state-panel { grid-row: auto; } }
+@media (max-width: 850px) {
+  .controls { grid-template-columns: 1fr; grid-template-areas: "file" "model" "tendency" "pomposity" "dynamic" "action"; }
+  .simulate-control { width: 100%; }
+  .panels { grid-template-columns: 1fr; }
+  .state-panel { grid-row: auto; }
+}

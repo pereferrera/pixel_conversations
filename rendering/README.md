@@ -1,7 +1,18 @@
-# Rendering
+# World Rendering
 
-Browser-side rendering business logic lives here, independently of the simulation engine and any app UI.
+`renderWorldToPng` returns the rendered PNG, warnings, and
+`characterMoodHitRegions`. Each region uses source-canvas coordinates and
+contains the character id, display name, render depth, bounds, and mood.
 
-`renderWorldToPng()` accepts a world snapshot, character profiles, and URLs for its scene definition and character manifests. It loads the declared assets, depth-sorts scene elements and characters, places sprites using scene/manifest anchors, adds the latest active conversation line and speaker name as a speech bubble, and returns a PNG `Blob` with non-fatal warnings.
+Awake characters always render their posture-and-direction `neutral` sprite.
+Non-neutral emotional states render separately using the shared 16 x 16 assets
+in `RenderingConfig.moodAssets`, centered above the character's topmost opaque
+sprite row. Sleeping characters retain their dedicated side-facing sprites and
+do not display a mood icon.
 
-Callers are responsible only for storing the returned blob or displaying it with an object URL. They should not duplicate placement, asset-selection, canvas, or dialogue-rendering rules.
+Use `attachCharacterMoodHover(image, result.characterMoodHitRegions)` to add a
+responsive hover tooltip to an `<img>` displaying that PNG. The binding maps
+CSS-scaled pointer coordinates back to the source canvas, selects the topmost
+overlapping character by render depth, and displays emotional state, valence,
+energy, and social need. Call `destroy()` before replacing the image or removing
+it from the page.

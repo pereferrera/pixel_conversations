@@ -3,10 +3,10 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
     "noEmit": false,
-    "outDir": "../.debug-build",
+    "outDir": "../debug-build",
     "rootDir": "..",
     "types": []
   },
   "include": ["../engine/**/*.ts", "../rendering/**/*.ts", "./app.ts"],
-  "exclude": ["../engine/**/*.test.ts"]
+  "exclude": ["../engine/**/*.test.ts", "../rendering/**/*.test.ts"]
 }

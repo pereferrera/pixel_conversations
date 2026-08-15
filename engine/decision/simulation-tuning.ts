@@ -1,4 +1,7 @@
 export interface SimulationTuning {
+  worldTendency: number;
+  pomposity: number;
+  worldDynamic: number;
   promptHistoryLimit: number;
   typicalChangesMin: number;
   typicalChangesMax: number;
@@ -20,6 +23,9 @@ export interface SimulationTuning {
  * Consumers may override relevant values where they construct state/providers.
  */
 export const DEFAULT_SIMULATION_TUNING: Readonly<SimulationTuning> = Object.freeze({
+  worldTendency: 0,
+  pomposity: 0,
+  worldDynamic: 0,
   promptHistoryLimit: 20,
   typicalChangesMin: 2,
   typicalChangesMax: 4,
@@ -38,6 +44,9 @@ export const DEFAULT_SIMULATION_TUNING: Readonly<SimulationTuning> = Object.free
 
 export function resolveSimulationTuning(overrides: Partial<SimulationTuning> = {}): SimulationTuning {
   const tuning = { ...DEFAULT_SIMULATION_TUNING, ...overrides };
+  signed(tuning.worldTendency, "worldTendency");
+  signed(tuning.pomposity, "pomposity");
+  signed(tuning.worldDynamic, "worldDynamic");
   positiveInteger(tuning.promptHistoryLimit, "promptHistoryLimit");
   positiveInteger(tuning.typicalChangesMin, "typicalChangesMin");
   positiveInteger(tuning.typicalChangesMax, "typicalChangesMax");
@@ -71,4 +80,8 @@ function percentage(value: number, label: string): void {
 
 function unit(value: number, label: string): void {
   if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError(`${label} must be between 0 and 1.`);
+}
+
+function signed(value: number, label: string): void {
+  if (!Number.isFinite(value) || value < -1 || value > 1) throw new RangeError(`${label} must be between -1 and 1.`);
 }

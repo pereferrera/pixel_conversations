@@ -6,7 +6,7 @@
     "debug": "npm run debug:build && node debug/server.mjs",
     "debug:build": "tsc -p debug/tsconfig.json",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test engine/**/*.test.ts debug/*.test.mjs"
+    "test": "tsx --test engine/**/*.test.ts rendering/*.test.ts debug/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^18.19.0",

@@ -102,6 +102,11 @@ postures/directions, current occupancy, and conversation pairs. Pixel baselines
 and seat renderer bindings are renderer concerns and should not be sent to the
 decision model.
 
+Every production scene must expose at least 20 runtime positions, including
+both standing and seated choices. Distribute standing baselines across multiple
+depth rows and connect nearby positions through `conversationPairs`; preserve
+stable ids when expanding an existing scene.
+
 ### Conversation placement
 
 A conversation can start only when its two participants occupy one declared

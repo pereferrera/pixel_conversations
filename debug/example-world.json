@@ -5,6 +5,19 @@
       { "id": "floor-left", "label": "Open floor by the left lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 389, "y": 510 } } },
       { "id": "floor-center", "label": "Open floor in the center", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 659, "y": 548 } } },
       { "id": "floor-right", "label": "Open floor by the right lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 1011, "y": 570 } } },
+      { "id": "back-window-left", "label": "By the left rear window", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 140, "y": 380 } } },
+      { "id": "back-lounge-left", "label": "Behind the left lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 270, "y": 395 } } },
+      { "id": "back-counter-left", "label": "Left side of the rear counter aisle", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 410, "y": 390 } } },
+      { "id": "back-counter-center", "label": "Center of the rear counter aisle", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 550, "y": 405 } } },
+      { "id": "back-counter-right", "label": "Right side of the rear counter aisle", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 690, "y": 400 } } },
+      { "id": "back-lounge-right", "label": "Behind the right lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 830, "y": 395 } } },
+      { "id": "back-window-right", "label": "By the right rear window", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 970, "y": 380 } } },
+      { "id": "front-window-left", "label": "Front-left edge of the open floor", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 130, "y": 565 } } },
+      { "id": "front-lounge-left", "label": "In front of the left lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 260, "y": 570 } } },
+      { "id": "front-center-left", "label": "Left side of the front open floor", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 520, "y": 575 } } },
+      { "id": "front-center-right", "label": "Right side of the front open floor", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 780, "y": 580 } } },
+      { "id": "front-lounge-right", "label": "In front of the right lounge", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 900, "y": 575 } } },
+      { "id": "middle-service-aisle", "label": "Middle of the service aisle", "kind": "standing", "allowedPostures": ["standing"], "allowedDirections": ["front", "left", "right"], "renderer": { "kind": "standing", "baseline": { "x": 590, "y": 470 } } },
       { "id": "bench-1/left-seat", "label": "Left seat of the teal bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "bench-1", "seatId": "left-seat" } },
       { "id": "bench-1/right-seat", "label": "Right seat of the teal bench", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "bench-1", "seatId": "right-seat" } },
       { "id": "chair-1/seat", "label": "Seat of the right lounge chair", "kind": "seat", "allowedPostures": ["sitting"], "allowedDirections": ["left", "right"], "renderer": { "kind": "seat", "elementInstanceId": "chair-1", "seatId": "seat" } },
@@ -18,7 +31,22 @@
       { "positions": ["chair-1/seat", "floor-right"], "facings": ["right", "left"] },
       { "positions": ["floor-left", "floor-center"], "facings": ["right", "left"] },
       { "positions": ["floor-center", "floor-right"], "facings": ["right", "left"] },
-      { "positions": ["chair-2/seat", "chair-1/seat"], "facings": ["right", "left"] }
+      { "positions": ["chair-2/seat", "chair-1/seat"], "facings": ["right", "left"] },
+      { "positions": ["back-window-left", "back-lounge-left"], "facings": ["right", "left"] },
+      { "positions": ["back-lounge-left", "back-counter-left"], "facings": ["right", "left"] },
+      { "positions": ["back-counter-left", "back-counter-center"], "facings": ["right", "left"] },
+      { "positions": ["back-counter-center", "back-counter-right"], "facings": ["right", "left"] },
+      { "positions": ["back-counter-right", "back-lounge-right"], "facings": ["right", "left"] },
+      { "positions": ["back-lounge-right", "back-window-right"], "facings": ["right", "left"] },
+      { "positions": ["front-window-left", "front-lounge-left"], "facings": ["right", "left"] },
+      { "positions": ["front-lounge-left", "floor-left"], "facings": ["right", "left"] },
+      { "positions": ["floor-left", "front-center-left"], "facings": ["right", "left"] },
+      { "positions": ["front-center-left", "floor-center"], "facings": ["right", "left"] },
+      { "positions": ["floor-center", "front-center-right"], "facings": ["right", "left"] },
+      { "positions": ["front-center-right", "front-lounge-right"], "facings": ["right", "left"] },
+      { "positions": ["front-lounge-right", "floor-right"], "facings": ["right", "left"] },
+      { "positions": ["chair-2/seat", "middle-service-aisle"], "facings": ["right", "left"] },
+      { "positions": ["middle-service-aisle", "floor-center"], "facings": ["right", "left"] }
     ]
   },
   "profiles": [
@@ -42,6 +70,11 @@
     "characterManifests": {
       "felix-adebayo": "/assets/characters/felix-adebayo/manifest.json",
       "grace-kim": "/assets/characters/grace-kim/manifest.json"
+    },
+    "moodAssets": {
+      "happy": "/assets/moods/happy.png",
+      "sad": "/assets/moods/sad.png",
+      "angry": "/assets/moods/angry.png"
     }
   },
   "state": {
@@ -49,10 +82,10 @@
     "sceneId": "community-cafe",
     "decisionHistory": [],
     "characters": {
-      "felix-adebayo": { "positionId": "chair-2/seat", "posture": "sitting", "facing": "left", "activity": "idle", "mood": { "valence": 0.2, "energy": 0.5, "socialNeed": 0.6 }, "memories": [], "relationships": {}, "conversationId": null },
-      "grace-kim": { "positionId": "floor-center", "posture": "standing", "facing": "front", "activity": "idle", "mood": { "valence": 0.4, "energy": 0.7, "socialNeed": 0.4 }, "memories": [], "relationships": {}, "conversationId": null }
+      "felix-adebayo": { "positionId": "chair-2/seat", "posture": "sitting", "facing": "left", "activity": "idle", "mood": { "valence": 0.2, "energy": 0.5, "socialNeed": 0.6, "emotionalState": "neutral" }, "memories": [], "relationships": {}, "conversationId": null },
+      "grace-kim": { "positionId": "floor-center", "posture": "standing", "facing": "front", "activity": "idle", "mood": { "valence": 0.4, "energy": 0.7, "socialNeed": 0.4, "emotionalState": "happy" }, "memories": [], "relationships": {}, "conversationId": null }
     },
     "conversations": {},
-    "events": []
+    "event": null
   }
 }

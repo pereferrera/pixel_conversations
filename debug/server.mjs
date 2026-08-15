@@ -1,4 +1,4 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { dirname, extname, resolve, sep } from "node:path";
@@ -13,6 +13,35 @@ const TYPES = new Map([
   [".json", "application/json; charset=utf-8"],
   [".png", "image/png"],
 ]);
+
+/** Load a local dotenv file without replacing variables already supplied by the shell. */
+export function loadEnvFile(filename, environment = process.env) {
+  let source;
+  try {
+    source = readFileSync(filename, "utf8");
+  } catch (error) {
+    if (error?.code === "ENOENT") return false;
+    throw error;
+  }
+
+  for (const [index, line] of source.split(/\r?\n/).entries()) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const match = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(trimmed);
+    if (!match) throw new SyntaxError(`Invalid environment entry in ${filename}:${index + 1}.`);
+    const [, name, rawValue] = match;
+    if (environment[name] !== undefined) continue;
+    environment[name] = dotenvValue(rawValue);
+  }
+  return true;
+}
+
+function dotenvValue(rawValue) {
+  if ((rawValue.startsWith('"') && rawValue.endsWith('"')) || (rawValue.startsWith("'") && rawValue.endsWith("'"))) {
+    return rawValue.slice(1, -1);
+  }
+  return rawValue.replace(/\s+#.*$/, "").trim();
+}
 
 export function createDebugServer({
   apiKey = process.env.OPENAI_API_KEY,
@@ -69,6 +98,9 @@ async function serveFile({ request, response, pathname, root }) {
   }
 
   const relative = decodeURIComponent(pathname).replace(/^\/+/, "");
+  if (relative.split("/").some((segment) => segment.startsWith("."))) {
+    return sendJson(response, 404, { error: "Not found." });
+  }
   let filename = resolve(root, relative);
   if (filename !== root && !filename.startsWith(root + sep)) return sendJson(response, 403, { error: "Forbidden." });
 
@@ -112,6 +144,7 @@ function sendJson(response, status, payload) {
 
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href;
 if (isMain) {
+  loadEnvFile(resolve(dirname(fileURLToPath(import.meta.url)), ".env"));
   const port = Number(process.env.PORT ?? 4173);
   createDebugServer().listen(port, "127.0.0.1", () => {
     console.log(`State debugger: http://localhost:${port}/debug/`);

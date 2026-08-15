@@ -14,7 +14,7 @@ export class OpenAIProvider extends AIProvider {
   model: string;
   fetch: FetchImplementation;
   tuning: Partial<SimulationTuning>;
-  constructor({ apiKey, model = "gpt-5.6-sol", fetchImpl, tuning = {} }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation; tuning?: Partial<SimulationTuning> }) {
+  constructor({ apiKey, model = "gpt-5.6-luna", fetchImpl, tuning = {} }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation; tuning?: Partial<SimulationTuning> }) {
     super();
     if (!apiKey) throw new TypeError("OpenAIProvider requires an API key.");
     const resolvedFetch = fetchImpl ?? globalThis.fetch?.bind(globalThis);
@@ -38,7 +38,11 @@ export class OpenAIProvider extends AIProvider {
           { role: "system", content: "You choose the next small, plausible changes in a quiet character simulation. Return only the requested structured decision. Never invent ids." },
           { role: "user", content: decisionPrompt(context, this.tuning) },
         ],
-        text: { format: { type: "json_schema", name: "simulation_decision", strict: false, schema: DECISION_JSON_SCHEMA } },
+        max_output_tokens: 800,
+        text: {
+          verbosity: "low",
+          format: { type: "json_schema", name: "simulation_decision", strict: false, schema: DECISION_JSON_SCHEMA },
+        },
       }),
     });
 

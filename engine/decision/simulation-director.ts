@@ -18,6 +18,7 @@ export class SimulationDirector {
   }
 
   async decideNext() {
+    this.state.beginSimulationIteration();
     const context = buildDecisionContext({ scene: this.scene, profiles: this.profiles, state: this.state.snapshot() });
     const decision = await this.provider.decide(context);
     const snapshot = applyDecision(this.state, decision, rulesFor(context));

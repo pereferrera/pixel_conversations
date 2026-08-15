@@ -13,11 +13,29 @@
         <span id="status" role="status">Loading example…</span>
       </header>
       <section class="controls" aria-label="Debugger controls">
-        <label>World JSON <input id="world-file" type="file" accept=".json,application/json"></label>
-        <label>Model <input id="model" value="gpt-5.6-luna"></label>
-        <button id="simulate" type="button">Simulate next step</button>
+        <label class="file-control">World JSON <input id="world-file" type="file" accept=".json,application/json"></label>
+        <label class="model-control">Model <input id="model" value="gpt-5.6-luna"></label>
+        <label class="tendency-control world-tendency-control">
+          <span>World tendency <output id="world-tendency-value" for="world-tendency">0.0</output></span>
+          <small>Biases whether events become adverse or fortunate.</small>
+          <input id="world-tendency" type="range" min="-1" max="1" step="0.1" value="0" aria-label="World tendency from conflict at minus one to peaceful at plus one">
+          <span class="range-labels"><span>−1 Conflict / misfortune</span><span>+1 Peace / good fortune</span></span>
+        </label>
+        <label class="tendency-control pomposity-control">
+          <span>Pomposity <output id="pomposity-value" for="pomposity">0.0</output></span>
+          <small>Controls how casual or theatrical spoken dialogue sounds.</small>
+          <input id="pomposity" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Dialogue pomposity from slang at minus one to Shakespeare-like at plus one">
+          <span class="range-labels"><span>−1 Slang / nonstandard</span><span>+1 Ornate / Shakespeare-like</span></span>
+        </label>
+        <label class="tendency-control dynamic-control">
+          <span>World dynamic <output id="world-dynamic-value" for="world-dynamic">0.0</output></span>
+          <small>Controls movement, interruptions, and conversation turnover.</small>
+          <input id="world-dynamic" type="range" min="-1" max="1" step="0.1" value="0" aria-label="World dynamic from quiet at minus one to hectic at plus one">
+          <span class="range-labels"><span>−1 Quiet / still</span><span>+1 Hectic / rapidly changing</span></span>
+        </label>
+        <button id="simulate" class="simulate-control" type="button">Simulate next step</button>
       </section>
-      <p class="hint">The local server reads OPENAI_API_KEY from its environment. Edit the current state before simulating to test another valid snapshot.</p>
+      <p class="hint">The local server reads OPENAI_API_KEY from its environment. Tune outcomes with world tendency, dialogue style with pomposity, and pacing with world dynamic. Edit the current state before simulating to test another valid snapshot.</p>
       <section class="world-preview" aria-labelledby="world-preview-title">
         <div class="panel-title"><h2 id="world-preview-title">Rendered world</h2><small id="rendering-meta">Rendering…</small></div>
         <img id="world-image" alt="Rendered current world state">
@@ -39,6 +57,6 @@
         </section>
       </section>
     </main>
-    <script type="module" src="../.debug-build/debug/app.js"></script>
+    <script type="module" src="../debug-build/debug/app.js"></script>
   </body>
 </html>

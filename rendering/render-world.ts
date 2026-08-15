@@ -1,4 +1,5 @@
-import type { CharacterProfile, FacingDirection, SimulationSnapshot } from "../engine/state/index.js";
+import { Activity, ConversationStatus } from "../engine/state/index.js";
+import type { CharacterProfile, CharacterState, FacingDirection, SimulationSnapshot } from "../engine/state/index.js";
 
 interface Point { x: number; y: number }
 interface RenderPosition {
@@ -27,10 +28,23 @@ interface CharacterManifest {
   sittingSleeping: { seatContactAnchors: Record<"left" | "right", Point> };
   assets: Record<string, string>;
 }
-export interface RenderingConfig { sceneDefinition: string; characterManifests: Record<string, string> }
+export interface RenderingConfig {
+  sceneDefinition: string;
+  characterManifests: Record<string, string>;
+  moodAssets: Partial<Record<CharacterState["mood"]["emotionalState"], string>>;
+}
 export interface RenderWorldRequest { state: SimulationSnapshot; profiles: CharacterProfile[]; rendering: RenderingConfig }
-export interface RenderWorldResult { png: Blob; warnings: string[] }
-interface Drawable { depth: number; url: string; x: number; y: number; width: number; height: number }
+export interface CharacterMoodHitRegion {
+  characterId: string;
+  name: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  depth: number;
+  mood: CharacterState["mood"];
+}
+export interface RenderWorldResult { png: Blob; warnings: string[]; characterMoodHitRegions: CharacterMoodHitRegion[] }
+export interface CharacterMoodHoverBinding { destroy(): void }
+interface Drawable { depth: number; url: string; x: number; y: number; width: number; height: number; moodUrl?: string; characterScale?: number }
+interface MoodOverlay { url: string; x: number; y: number; width: number; height: number }
 
 /** Render one serializable world snapshot into a PNG without exposing canvas logic to callers. */
 export async function renderWorldToPng({ state, profiles, rendering }: RenderWorldRequest): Promise<RenderWorldResult> {
@@ -47,6 +61,7 @@ export async function renderWorldToPng({ state, profiles, rendering }: RenderWor
   context.drawImage(await loadImage(new URL(scene.assets.background, sceneUrl).href), 0, 0, canvas.width, canvas.height);
 
   const drawables: Drawable[] = [];
+  const characterMoodHitRegions: CharacterMoodHitRegion[] = [];
   const elementInstances = new Map<string, SceneInstance>();
   for (const instance of scene.example.instances.filter(({ kind }) => kind === "element")) {
     if (!instance.type || !instance.anchor) continue;
@@ -78,10 +93,16 @@ export async function renderWorldToPng({ state, profiles, rendering }: RenderWor
     if (!position?.renderer) { warnings.push(`No renderer binding for position ${character.positionId}.`); continue; }
     const positionRenderer = position.renderer;
     const facing = sideFacing(character.facing);
-    const sleeping = character.posture === "sleeping";
-    const assetKey = sleeping ? `sitting-sleeping/${facing}` : `${character.posture}/${character.facing}`;
+    const sleeping = character.activity === Activity.SLEEPING;
+    const assetKey = characterAssetKey(character);
     const asset = manifest.assets[assetKey];
     if (!asset) { warnings.push(`Missing ${assetKey} sprite for ${characterId}.`); continue; }
+    const moodPath = sleeping || character.mood.emotionalState === "neutral"
+      ? undefined
+      : rendering.moodAssets[character.mood.emotionalState];
+    if (!sleeping && character.mood.emotionalState !== "neutral" && !moodPath) {
+      warnings.push(`Missing shared ${character.mood.emotionalState} mood asset.`);
+    }
     const scale = scene.canvas.characterDisplayScale;
     let contact: Point;
     let depth: number;
@@ -106,18 +127,114 @@ export async function renderWorldToPng({ state, profiles, rendering }: RenderWor
     }
     const x = contact.x - characterAnchor.x * scale;
     const y = contact.y - characterAnchor.y * scale;
-    drawables.push({ depth, url: new URL(asset, manifestUrl).href, x, y, width: manifest.logicalCanvas.width * scale, height: manifest.logicalCanvas.height * scale });
+    const width = manifest.logicalCanvas.width * scale;
+    const height = manifest.logicalCanvas.height * scale;
+    drawables.push({
+      depth,
+      url: new URL(asset, manifestUrl).href,
+      x,
+      y,
+      width,
+      height,
+      moodUrl: moodPath ? absoluteUrl(moodPath) : undefined,
+      characterScale: scale,
+    });
+    characterMoodHitRegions.push({
+      characterId,
+      name: profileName(profiles, characterId),
+      bounds: { x, y, width, height },
+      depth,
+      mood: structuredClone(character.mood),
+    });
     speakerAnchors.set(characterId, { x: x + manifest.logicalCanvas.width * scale / 2, y: y + 20 });
   }
+  const moodOverlays: MoodOverlay[] = [];
   for (const drawable of drawables.sort((left, right) => left.depth - right.depth)) {
-    context.drawImage(await loadImage(drawable.url), drawable.x, drawable.y, drawable.width, drawable.height);
+    const image = await loadImage(drawable.url);
+    context.drawImage(image, drawable.x, drawable.y, drawable.width, drawable.height);
+    if (drawable.moodUrl && drawable.characterScale) {
+      moodOverlays.push(moodOverlayBounds({
+        characterX: drawable.x,
+        characterY: drawable.y,
+        characterWidth: drawable.width,
+        topOpaqueRow: topOpaqueRow(image),
+        scale: drawable.characterScale,
+      }, drawable.moodUrl));
+    }
+  }
+  for (const overlay of moodOverlays) {
+    context.drawImage(await loadImage(overlay.url), overlay.x, overlay.y, overlay.width, overlay.height);
   }
   drawLatestSpeech(context, state, profiles, speakerAnchors, canvas.width);
-  return { png: await canvasPng(canvas), warnings };
+  drawActiveEvent(context, state, canvas.width);
+  return { png: await canvasPng(canvas), warnings, characterMoodHitRegions };
 }
 
+/** Attach a reusable mood tooltip to an image produced by renderWorldToPng. */
+export function attachCharacterMoodHover(
+  image: HTMLImageElement,
+  hitRegions: CharacterMoodHitRegion[],
+): CharacterMoodHoverBinding {
+  const tooltip = document.createElement("div");
+  tooltip.setAttribute("role", "tooltip");
+  Object.assign(tooltip.style, {
+    position: "fixed",
+    zIndex: "1000",
+    display: "none",
+    pointerEvents: "none",
+    padding: "8px 10px",
+    border: "2px solid #25262b",
+    borderRadius: "6px",
+    background: "rgba(246, 238, 219, .97)",
+    color: "#241f1b",
+    font: "13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+    whiteSpace: "pre-line",
+    boxShadow: "0 4px 14px rgba(0, 0, 0, .25)",
+  });
+  document.body.append(tooltip);
+
+  const hide = () => { tooltip.style.display = "none"; };
+  const move = (event: PointerEvent) => {
+    const rect = image.getBoundingClientRect();
+    if (!rect.width || !rect.height || !image.naturalWidth || !image.naturalHeight) return hide();
+    const canvasX = (event.clientX - rect.left) * image.naturalWidth / rect.width;
+    const canvasY = (event.clientY - rect.top) * image.naturalHeight / rect.height;
+    const region = topmostHitRegion(hitRegions, canvasX, canvasY);
+    if (!region) return hide();
+    const { emotionalState, valence, energy, socialNeed } = region.mood;
+    tooltip.textContent = `${region.name}\n${emotionalState}\nvalence ${formatMoodValue(valence)} · energy ${formatMoodValue(energy)} · social need ${formatMoodValue(socialNeed)}`;
+    tooltip.style.left = `${event.clientX + 14}px`;
+    tooltip.style.top = `${event.clientY + 14}px`;
+    tooltip.style.display = "block";
+  };
+  image.addEventListener("pointermove", move);
+  image.addEventListener("pointerleave", hide);
+  return {
+    destroy() {
+      image.removeEventListener("pointermove", move);
+      image.removeEventListener("pointerleave", hide);
+      tooltip.remove();
+    },
+  };
+}
+
+export function topmostHitRegion(hitRegions: CharacterMoodHitRegion[], x: number, y: number): CharacterMoodHitRegion | null {
+  let match: CharacterMoodHitRegion | null = null;
+  for (const region of hitRegions) {
+    const bounds = region.bounds;
+    if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
+      if (!match || region.depth >= match.depth) match = region;
+    }
+  }
+  return match;
+}
+
+function formatMoodValue(value: number): string { return value.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""); }
+
 function drawLatestSpeech(context: CanvasRenderingContext2D, state: SimulationSnapshot, profiles: CharacterProfile[], anchors: Map<string, Point>, canvasWidth: number): void {
-  const last = Object.values(state.conversations).filter(({ active }) => active).at(-1)?.beats.at(-1);
+  const last = Object.values(state.conversations)
+    .filter(({ status }) => status === ConversationStatus.ACTIVE || status === ConversationStatus.CLOSING)
+    .at(-1)?.beats.at(-1);
   if (!last || last.type !== "say") return;
   const anchor = anchors.get(last.speakerId);
   if (!anchor) return;
@@ -141,8 +258,24 @@ function drawLatestSpeech(context: CanvasRenderingContext2D, state: SimulationSn
   context.fillStyle = "rgba(246, 238, 219, .97)";
   context.strokeStyle = "#25262b";
   context.lineWidth = 3;
-  context.beginPath(); context.moveTo(anchor.x - 10, y + height); context.lineTo(anchor.x, y + height + 16); context.lineTo(anchor.x + 10, y + height); context.fill(); context.stroke();
-  context.beginPath(); context.roundRect(x, y, width, height, 12); context.fill(); context.stroke();
+  const radius = 12;
+  const tailCenterX = Math.max(x + radius + 10, Math.min(x + width - radius - 10, anchor.x));
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.lineTo(x + width - radius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + radius);
+  context.lineTo(x + width, y + height - radius);
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  context.lineTo(tailCenterX + 10, y + height);
+  context.lineTo(anchor.x, y + height + 16);
+  context.lineTo(tailCenterX - 10, y + height);
+  context.lineTo(x + radius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - radius);
+  context.lineTo(x, y + radius);
+  context.quadraticCurveTo(x, y, x + radius, y);
+  context.closePath();
+  context.fill();
+  context.stroke();
   context.fillStyle = "#5e554a";
   context.font = "bold 13px DejaVu Sans, system-ui, sans-serif";
   context.fillText(speakerName, x + horizontalPadding, y + verticalPadding + 12);
@@ -150,6 +283,38 @@ function drawLatestSpeech(context: CanvasRenderingContext2D, state: SimulationSn
   context.font = "16px DejaVu Sans, system-ui, sans-serif";
   const bodyY = y + verticalPadding + headerHeight + headerBodyGap + 16;
   lines.forEach((line, index) => context.fillText(line, x + horizontalPadding, bodyY + index * bodyLineHeight));
+}
+
+function drawActiveEvent(context: CanvasRenderingContext2D, state: SimulationSnapshot, canvasWidth: number): void {
+  if (!state.event) return;
+  const maxWidth = Math.min(620, canvasWidth - 32);
+  const horizontalPadding = 20;
+  const verticalPadding = 14;
+  const headerHeight = 16;
+  const headerBodyGap = 7;
+  const lineHeight = 22;
+  context.font = "16px DejaVu Sans, system-ui, sans-serif";
+  const lines = wrapText(context, state.event.summary, maxWidth - horizontalPadding * 2);
+  const bodyWidth = Math.max(...lines.map((line) => context.measureText(line).width), 0);
+  const width = Math.min(maxWidth, Math.max(280, bodyWidth + horizontalPadding * 2));
+  const height = verticalPadding * 2 + headerHeight + headerBodyGap + lines.length * lineHeight;
+  const x = (canvasWidth - width) / 2;
+  const y = 16;
+  const radius = 12;
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+  context.fillStyle = "rgba(216, 232, 247, .97)";
+  context.strokeStyle = "#334f68";
+  context.lineWidth = 3;
+  context.fill();
+  context.stroke();
+  context.fillStyle = "#476b89";
+  context.font = "bold 13px DejaVu Sans, system-ui, sans-serif";
+  context.fillText("WORLD EVENT", x + horizontalPadding, y + verticalPadding + 12);
+  context.fillStyle = "#1f2d38";
+  context.font = "16px DejaVu Sans, system-ui, sans-serif";
+  const bodyY = y + verticalPadding + headerHeight + headerBodyGap + 16;
+  lines.forEach((line, index) => context.fillText(line, x + horizontalPadding, bodyY + index * lineHeight));
 }
 
 function wrapText(context: CanvasRenderingContext2D, text: string, width: number): string[] {
@@ -171,6 +336,41 @@ function profileName(profiles: CharacterProfile[], characterId: string): string 
   return characterId;
 }
 function sideFacing(facing: FacingDirection): "left" | "right" { return facing === "right" ? "right" : "left"; }
+export function characterAssetKey(character: Pick<CharacterState, "activity" | "posture" | "facing">): string {
+  return character.activity === Activity.SLEEPING
+    ? `sitting-sleeping/${sideFacing(character.facing)}`
+    : `${character.posture}/${character.facing}/neutral`;
+}
+export function moodOverlayBounds(
+  character: { characterX: number; characterY: number; characterWidth: number; topOpaqueRow: number; scale: number },
+  url: string,
+): MoodOverlay {
+  const logicalIconSize = 16;
+  const gap = 2 * character.scale;
+  const size = logicalIconSize * character.scale;
+  return {
+    url,
+    x: character.characterX + (character.characterWidth - size) / 2,
+    y: Math.max(2, character.characterY + character.topOpaqueRow * character.scale - size - gap),
+    width: size,
+    height: size,
+  };
+}
+function topOpaqueRow(image: HTMLImageElement): number {
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth;
+  canvas.height = image.naturalHeight;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  if (!context) return 0;
+  context.drawImage(image, 0, 0);
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+  for (let y = 0; y < canvas.height; y += 1) {
+    for (let x = 0; x < canvas.width; x += 1) {
+      if (pixels[(y * canvas.width + x) * 4 + 3] > 0) return y;
+    }
+  }
+  return 0;
+}
 function absoluteUrl(path: string): string { return new URL(path, document.baseURI).href; }
 async function getJson<T>(url: string): Promise<T> { const response = await fetch(url); if (!response.ok) throw new Error(`Could not load render asset ${url} (${response.status}).`); return response.json() as Promise<T>; }
 async function loadImage(url: string): Promise<HTMLImageElement> { const image = new Image(); image.src = url; await image.decode(); return image; }

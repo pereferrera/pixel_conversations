@@ -72,16 +72,17 @@ logical-sized and are never resaved at scene scale.
 - Sitting poses declare a direction-specific pelvis contact point measured in the
   logical canvas. Felix uses `(34, 74)` facing left and the exact mirrored point
   `(13, 74)` facing right.
-- Sitting-sleeping poses use the same direction-specific contact points. Sleep is a sitting state, not a
-  separate furniture interaction.
+- Sitting-sleeping sprites use the same direction-specific contact points. They
+  render the sleeping activity while posture remains sitting; sleep is not a
+  separate posture or furniture interaction.
 - Right-facing side poses should be exact nearest-neighbour horizontal mirrors of
   approved left-facing finals unless a directional prop requires unique art.
 - Sprite PNGs must be RGBA with hard alpha. Never embed a floor, contact shadow,
   furniture, or scene lighting.
 
-Canonical paths are `{pose}/{direction}/{state}.png`. Supported poses are
-`standing`, `sitting`, and `sitting-sleeping`; directions are `left`, `right`, and,
-for standing, `front`.
-
-Felix Adebayo is the first complete implementation. His seven canonical assets
-and anchors are enumerated in `assets/characters/felix-adebayo/manifest.json`.
+Awake sprites use canonical paths `{posture}/{direction}/neutral-idle.png`.
+Emotional state is rendered independently as one shared mood icon hovering
+above the character, so character manifests never select artwork by mood.
+Supported postures are `standing` and `sitting`; directions are `left`, `right`,
+and, for standing, `front`. The `sitting-sleeping` asset folder is the dedicated
+rendering override for a seated character whose activity is sleeping.

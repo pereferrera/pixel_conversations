@@ -7,14 +7,25 @@ import { DEFAULT_SIMULATION_TUNING } from "../decision/simulation-tuning.js";
 export const Posture = Object.freeze({
   STANDING: "standing",
   SITTING: "sitting",
-  SLEEPING: "sleeping",
 });
 
 export const Activity = Object.freeze({
   IDLE: "idle",
   TALKING: "talking",
-  RESTING: "resting",
+  SLEEPING: "sleeping",
 });
+
+export enum EmotionalState {
+  HAPPY = "happy",
+  SAD = "sad",
+  ANGRY = "angry",
+  NEUTRAL = "neutral",
+}
+
+export enum ConversationStatus {
+  ACTIVE = "active",
+  CLOSING = "closing",
+}
 
 export enum ChangeType {
   SAY = "say",
@@ -23,6 +34,7 @@ export enum ChangeType {
   UPDATE_RELATIONSHIP = "updateRelationship",
   PLACE_CHARACTER = "placeCharacter",
   SET_POSTURE = "setPosture",
+  SET_ACTIVITY = "setActivity",
   START_CONVERSATION = "startConversation",
   END_CONVERSATION = "endConversation",
   PAUSE_CONVERSATION = "pauseConversation",
@@ -32,10 +44,11 @@ export enum ChangeType {
 export type PostureValue = (typeof Posture)[keyof typeof Posture];
 export type ActivityValue = (typeof Activity)[keyof typeof Activity];
 export type FacingDirection = "front" | "left" | "right";
-export type MoodChange = Partial<{ valence: number; energy: number; socialNeed: number }>;
+export type MoodChange = Partial<{ valence: number; energy: number; socialNeed: number; emotionalState: EmotionalState }>;
 export type RelationshipChange = Partial<{ affinity: number; trust: number }>;
 export interface MemoryInput { summary: string; importance?: number }
 export interface EventInput { type: string; summary: string; participants?: string[] }
+export interface WorldEvent { type: string; summary: string; participants: string[] }
 export interface ScenePosition {
   id: string;
   label?: string;
@@ -62,6 +75,7 @@ export type SimulationChange =
   | { type: ChangeType.UPDATE_RELATIONSHIP; fromId: string; toId: string; relationship: RelationshipChange }
   | { type: ChangeType.PLACE_CHARACTER; characterId: string; positionId: string; posture: PostureValue; facing?: FacingDirection }
   | { type: ChangeType.SET_POSTURE; characterId: string; posture: PostureValue }
+  | { type: ChangeType.SET_ACTIVITY; characterId: string; activity: ActivityValue }
   | { type: ChangeType.START_CONVERSATION; id: string; participants: string[]; topic?: string | null }
   | { type: ChangeType.END_CONVERSATION; conversationId: string }
   | { type: ChangeType.PAUSE_CONVERSATION; conversationId: string }
@@ -75,13 +89,13 @@ export interface CharacterState {
   posture: PostureValue;
   facing: FacingDirection;
   activity: ActivityValue;
-  mood: { valence: number; energy: number; socialNeed: number };
+  mood: { valence: number; energy: number; socialNeed: number; emotionalState: EmotionalState };
   memories: Memory[];
   relationships: Record<string, RelationshipValue>;
   conversationId: string | null;
 }
 export interface Conversation {
-  id: string; active: boolean; participants: string[]; topic: string | null;
+  id: string; status: ConversationStatus; participants: string[]; topic: string | null;
   beats: ConversationBeat[];
 }
 export type ConversationBeat =
@@ -92,7 +106,7 @@ export interface SimulationSnapshot {
   decisionHistory: string[];
   characters: Record<string, CharacterState>;
   conversations: Record<string, Conversation>;
-  events: Array<{ type: string; summary: string; participants: string[] }>;
+  event: WorldEvent | null;
 }
 interface NormalisedPosition { id: string; capacity: number; allowedPostures: PostureValue[]; allowedDirections: FacingDirection[] }
 
@@ -104,6 +118,7 @@ export const CHANGE_STATE_METHOD = Object.freeze({
   [ChangeType.UPDATE_RELATIONSHIP]: "updateRelationship",
   [ChangeType.PLACE_CHARACTER]: "placeCharacter",
   [ChangeType.SET_POSTURE]: "setPosture",
+  [ChangeType.SET_ACTIVITY]: "setActivity",
   [ChangeType.START_CONVERSATION]: "startConversation",
   [ChangeType.END_CONVERSATION]: "endConversation",
   [ChangeType.PAUSE_CONVERSATION]: "pauseConversation",
@@ -111,6 +126,8 @@ export const CHANGE_STATE_METHOD = Object.freeze({
 } satisfies Record<ChangeType, keyof SimulationState>);
 
 const POSTURES = new Set(Object.values(Posture));
+const ACTIVITIES = new Set(Object.values(Activity));
+const EMOTIONAL_STATES = new Set(Object.values(EmotionalState));
 const FACING_DIRECTIONS = new Set<FacingDirection>(["front", "left", "right"]);
 
 /**
@@ -125,10 +142,12 @@ export class Mood {
   valence: number;
   energy: number;
   socialNeed: number;
-  constructor({ valence = 0, energy = 0.5, socialNeed = 0.5 }: MoodChange = {}) {
+  emotionalState: EmotionalState;
+  constructor({ valence = 0, energy = 0.5, socialNeed = 0.5, emotionalState = EmotionalState.NEUTRAL }: MoodChange = {}) {
     this.valence = signed(valence, "mood.valence");
     this.energy = unit(energy, "mood.energy");
     this.socialNeed = unit(socialNeed, "mood.socialNeed");
+    this.emotionalState = emotion(emotionalState, "mood.emotionalState");
   }
 }
 
@@ -146,7 +165,7 @@ export class Relationship {
   }
 }
 
-const MOOD_FIELDS = Object.freeze({ valence: signed, energy: unit, socialNeed: unit });
+const MOOD_FIELDS = Object.freeze({ valence: signed, energy: unit, socialNeed: unit, emotionalState: emotion });
 const RELATIONSHIP_FIELDS = Object.freeze({ affinity: signed, trust: signed });
 
 export class SimulationState {
@@ -174,7 +193,7 @@ export class SimulationState {
       decisionHistory: [],
       characters: Object.fromEntries(characterIds.map((id) => [id, newCharacterState()])),
       conversations: {},
-      events: [],
+      event: null,
     };
   }
 
@@ -197,7 +216,7 @@ export class SimulationState {
     if (!position.allowedDirections.includes(resolvedFacing)) throw new RangeError(`${resolvedFacing} is not allowed at position ${positionId}.`);
     const occupants = Object.values(this.#state.characters).filter((other) => other.positionId === positionId);
     if (character.positionId !== positionId && occupants.length > 0) throw new RangeError(`Place ${positionId} is occupied.`);
-    Object.assign(character, { positionId, posture, facing: resolvedFacing, activity: posture === Posture.SLEEPING ? Activity.RESTING : Activity.IDLE });
+    Object.assign(character, { positionId, posture, facing: resolvedFacing, activity: Activity.IDLE });
     return this.snapshot();
   }
 
@@ -207,10 +226,21 @@ export class SimulationState {
     return this.placeCharacter(characterId, character.positionId, posture, character.facing);
   }
 
+  setActivity(characterId: string, activity: ActivityValue) {
+    const character = this.#character(characterId);
+    if (!character.positionId) throw new Error("Place a character before setting their activity.");
+    if (!ACTIVITIES.has(activity)) throw new RangeError(`Unknown activity: ${activity}.`);
+    if (activity === Activity.TALKING) throw new RangeError("Talking activity is managed by conversation lifecycle actions.");
+    if (character.conversationId) throw new Error(`End conversation ${character.conversationId} before changing ${characterId}'s activity.`);
+    if (activity === Activity.SLEEPING && character.posture !== Posture.SITTING) throw new RangeError("A character can sleep only while sitting.");
+    character.activity = activity;
+    return this.snapshot();
+  }
+
   setMood(characterId: string, mood: MoodChange) {
     const character = this.#character(characterId);
-    for (const [key, validate] of Object.entries(MOOD_FIELDS) as Array<[keyof CharacterState["mood"], typeof signed]>) {
-      if (mood[key] !== undefined) character.mood[key] = validate(mood[key], `mood.${key}`);
+    for (const [key, validate] of Object.entries(MOOD_FIELDS) as Array<[keyof MoodChange, (value: any, label: string) => any]>) {
+      if (mood[key] !== undefined) (character.mood as any)[key] = validate(mood[key], `mood.${key}`);
     }
     return this.snapshot();
   }
@@ -248,12 +278,14 @@ export class SimulationState {
     participants.forEach((characterId) => {
       const character = this.#character(characterId);
       if (!character.positionId) throw new Error(`Cannot start a conversation: ${characterId} has no position.`);
-      if (character.activity === Activity.RESTING) throw new Error(`Cannot start a conversation: ${characterId} is resting.`);
+      if (character.activity === Activity.SLEEPING) throw new Error(`Cannot start a conversation: ${characterId} is sleeping.`);
       if (character.conversationId) throw new Error(`Cannot start a conversation: ${characterId} is already talking.`);
     });
     const arrangementError = conversationArrangementError(this.#scene, this.#state.characters, participants);
     if (arrangementError) throw new Error(`Cannot start a conversation: ${arrangementError}`);
-    this.#state.conversations[id] = { id, active: true, participants: [...participants], topic, beats: [] };
+    const facings = conversationPairFacings(this.#scene, this.#state.characters, participants)!;
+    participants.forEach((characterId, index) => { this.#state.characters[characterId].facing = facings[index]; });
+    this.#state.conversations[id] = { id, status: ConversationStatus.ACTIVE, participants: [...participants], topic, beats: [] };
     participants.forEach((characterId) => Object.assign(this.#state.characters[characterId], { conversationId: id, activity: Activity.TALKING }));
     return this.snapshot();
   }
@@ -274,41 +306,68 @@ export class SimulationState {
 
   endConversation(conversationId: string) {
     const conversation = this.#conversation(conversationId);
-    conversation.active = false;
     conversation.participants.forEach((characterId) => {
       const character = this.#state.characters[characterId];
       character.conversationId = null;
-      character.activity = character.posture === Posture.SLEEPING ? Activity.RESTING : Activity.IDLE;
+      character.activity = Activity.IDLE;
     });
+    conversation.status = ConversationStatus.CLOSING;
+    return this.snapshot();
+  }
+
+  /** Remove conversations that closed during the previous simulation step. */
+  finalizeClosingConversations() {
+    for (const [id, conversation] of Object.entries(this.#state.conversations)) {
+      if (conversation.status === ConversationStatus.CLOSING) delete this.#state.conversations[id];
+    }
+    return this.snapshot();
+  }
+
+  /** Expire one-frame state before asking for the next simulation decision. */
+  beginSimulationIteration() {
+    this.finalizeClosingConversations();
+    this.#state.event = null;
     return this.snapshot();
   }
 
   addEvent({ type, summary, participants = [] }: EventInput) {
     if (!type || !summary) throw new TypeError("An event needs a type and summary.");
     participants.forEach((characterId) => this.#character(characterId));
-    this.#state.events.push({ type, summary, participants: [...new Set(participants)] });
+    this.#state.event = { type, summary, participants: [...new Set(participants)] };
     return this.snapshot();
   }
 
   #character(id: string): CharacterState { const character = this.#state.characters[id]; if (!character) throw new RangeError(`Unknown character: ${id}.`); return character; }
   #position(id: string): NormalisedPosition { const position = this.#positions.get(id); if (!position) throw new RangeError(`Unknown position: ${id}.`); return position; }
-  #conversation(id: string): Conversation { const conversation = this.#state.conversations[id]; if (!conversation?.active) throw new RangeError(`No active conversation: ${id}.`); return conversation; }
+  #conversation(id: string): Conversation { const conversation = this.#state.conversations[id]; if (conversation?.status !== ConversationStatus.ACTIVE) throw new RangeError(`No active conversation: ${id}.`); return conversation; }
 }
 
 export function conversationArrangementError(
   scene: Scene,
-  characters: Record<string, Pick<CharacterState, "positionId" | "facing">>,
+  characters: Record<string, Pick<CharacterState, "positionId">>,
   participants: string[],
 ): string | null {
   if (participants.length !== 2) return "exactly two participants are required.";
   const first = characters[participants[0]];
   const second = characters[participants[1]];
   if (!first?.positionId || !second?.positionId) return "both participants must be placed.";
-  const match = scene.conversationPairs.some((pair) =>
-    (pair.positions[0] === first.positionId && pair.facings[0] === first.facing && pair.positions[1] === second.positionId && pair.facings[1] === second.facing)
-    || (pair.positions[1] === first.positionId && pair.facings[1] === first.facing && pair.positions[0] === second.positionId && pair.facings[0] === second.facing),
-  );
-  return match ? null : "participants must occupy one declared conversation pair with the required opposing facings.";
+  return conversationPairFacings(scene, characters, participants) ? null : "participants must occupy one declared conversation pair.";
+}
+
+/** Resolve the facing each participant adopts when starting a conversation. */
+export function conversationPairFacings(
+  scene: Scene,
+  characters: Record<string, Pick<CharacterState, "positionId">>,
+  participants: string[],
+): [FacingDirection, FacingDirection] | null {
+  if (participants.length !== 2) return null;
+  const firstPosition = characters[participants[0]]?.positionId;
+  const secondPosition = characters[participants[1]]?.positionId;
+  for (const pair of scene.conversationPairs) {
+    if (pair.positions[0] === firstPosition && pair.positions[1] === secondPosition) return [...pair.facings];
+    if (pair.positions[1] === firstPosition && pair.positions[0] === secondPosition) return [pair.facings[1], pair.facings[0]];
+  }
+  return null;
 }
 
 function newCharacterState(): CharacterState {
@@ -317,7 +376,7 @@ function newCharacterState(): CharacterState {
     posture: Posture.STANDING,
     facing: "front",
     activity: Activity.IDLE,
-    mood: { valence: 0, energy: 0.5, socialNeed: 0.5 },
+    mood: { valence: 0, energy: 0.5, socialNeed: 0.5, emotionalState: EmotionalState.NEUTRAL },
     memories: [],
     relationships: {},
     conversationId: null,
@@ -329,3 +388,4 @@ function assertPosture(posture: PostureValue): void { if (!POSTURES.has(posture)
 function assertFacing(facing: FacingDirection): void { if (!FACING_DIRECTIONS.has(facing)) throw new RangeError(`Unknown facing direction: ${facing}.`); }
 function unit(value: number, label: string): number { if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError(`${label} must be between 0 and 1.`); return value; }
 function signed(value: number, label: string): number { if (!Number.isFinite(value) || value < -1 || value > 1) throw new RangeError(`${label} must be between -1 and 1.`); return value; }
+function emotion(value: EmotionalState, label: string): EmotionalState { if (!EMOTIONAL_STATES.has(value)) throw new RangeError(`${label} must be happy, sad, angry, or neutral.`); return value; }

@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Activity, Posture, SimulationState } from "./index.js";
+import { Activity, ConversationStatus, EmotionalState, Posture, SimulationState } from "./index.js";
 
 const scene = {
   id: "library",
   positions: [
     { id: "desk", capacity: 2, allowedPostures: [Posture.SITTING], allowedDirections: ["left", "right"] as ("left" | "right")[] },
     { id: "window", allowedPostures: [Posture.STANDING] },
-    { id: "sofa", allowedPostures: [Posture.SITTING, Posture.SLEEPING] },
+    { id: "sofa", allowedPostures: [Posture.SITTING] },
   ],
   conversationPairs: [
     { positions: ["desk", "sofa"] as [string, string], facings: ["left", "right"] as ["left", "right"] },
@@ -64,8 +64,19 @@ test("conversations update participant activity and validate beats", () => {
   assert.deepEqual(state.snapshot().conversations.stars.beats.map(({ type }) => type), ["say", "pause"]);
   assert.throws(() => state.addConversationTurn("stars", { speakerId: "someone-else", text: "Hello" }), /not part/);
   assert.throws(() => state.placeCharacter("grace-kim", "window", Posture.STANDING), /End conversation/);
+  state.remember("felix-adebayo", { summary: "Grace listened to his observation.", importance: 0.7 });
   state.endConversation("stars");
-  assert.equal(state.snapshot().characters["felix-adebayo"].activity, Activity.IDLE);
+  const snapshot = state.snapshot();
+  assert.equal(snapshot.characters["felix-adebayo"].activity, Activity.IDLE);
+  assert.equal(snapshot.characters["felix-adebayo"].conversationId, null);
+  assert.equal(snapshot.conversations.stars.status, ConversationStatus.CLOSING);
+  assert.deepEqual(snapshot.conversations.stars.beats.map(({ type }) => type), ["say", "pause"]);
+  assert.throws(() => state.addConversationTurn("stars", { speakerId: "felix-adebayo", text: "One more thing." }), /No active conversation/);
+  state.finalizeClosingConversations();
+  assert.equal(state.snapshot().conversations.stars, undefined);
+  assert.deepEqual(snapshot.characters["felix-adebayo"].memories, [
+    { summary: "Grace listened to his observation.", importance: 0.7 },
+  ]);
 });
 
 test("relationships are constrained", () => {
@@ -74,4 +85,51 @@ test("relationships are constrained", () => {
   const snapshot = state.snapshot();
   assert.deepEqual(snapshot.characters["felix-adebayo"].relationships["grace-kim"], { affinity: 0.4, trust: -0.2 });
   assert.throws(() => state.updateRelationship("felix-adebayo", "grace-kim", { affinity: 2 }), /between/);
+});
+
+test("conversation start turns participants to their declared pair facings", () => {
+  const state = makeState();
+  state.placeCharacter("felix-adebayo", "desk", Posture.SITTING, "right");
+  state.placeCharacter("grace-kim", "sofa", Posture.SITTING, "left");
+  state.startConversation({ id: "turn-to-talk", participants: ["felix-adebayo", "grace-kim"] });
+  assert.equal(state.snapshot().characters["felix-adebayo"].facing, "left");
+  assert.equal(state.snapshot().characters["grace-kim"].facing, "right");
+});
+
+test("an event lasts for one rendered iteration and a new event replaces it", () => {
+  const state = makeState();
+  state.addEvent({ type: "lights-flicker", summary: "The library lights flicker.", participants: ["felix-adebayo"] });
+  assert.deepEqual(state.snapshot().event, {
+    type: "lights-flicker",
+    summary: "The library lights flicker.",
+    participants: ["felix-adebayo"],
+  });
+  state.addEvent({ type: "lights-steady", summary: "The lights become steady again." });
+  assert.equal(state.snapshot().event?.type, "lights-steady");
+  state.beginSimulationIteration();
+  assert.equal(state.snapshot().event, null);
+});
+
+test("emotional states are constrained while continuous mood dimensions remain available", () => {
+  const state = makeState();
+  state.setMood("felix-adebayo", { valence: -0.4, emotionalState: EmotionalState.SAD });
+  assert.deepEqual(state.snapshot().characters["felix-adebayo"].mood, {
+    valence: -0.4,
+    energy: 0.5,
+    socialNeed: 0.5,
+    emotionalState: EmotionalState.SAD,
+  });
+  assert.throws(() => state.setMood("felix-adebayo", { emotionalState: "excited" as EmotionalState }), /happy, sad, angry, or neutral/);
+});
+
+test("sleeping is an activity allowed only while sitting", () => {
+  const state = makeState();
+  state.placeCharacter("felix-adebayo", "window", Posture.STANDING);
+  assert.throws(() => state.setActivity("felix-adebayo", Activity.SLEEPING), /only while sitting/);
+  state.placeCharacter("felix-adebayo", "desk", Posture.SITTING);
+  state.setActivity("felix-adebayo", Activity.SLEEPING);
+  assert.equal(state.snapshot().characters["felix-adebayo"].activity, Activity.SLEEPING);
+  assert.throws(() => state.startConversation({ id: "nap-chat", participants: ["felix-adebayo", "grace-kim"] }), /sleeping/);
+  state.setActivity("felix-adebayo", Activity.IDLE);
+  assert.equal(state.snapshot().characters["felix-adebayo"].activity, Activity.IDLE);
 });

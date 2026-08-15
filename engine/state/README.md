@@ -10,7 +10,7 @@ may carry a renderer-only binding to a standing baseline or furniture seat.
 A character may move to an occupied place only after its occupant moves away.
 
 ```js
-import { Posture, SimulationState } from "./engine/state/index.js";
+import { Activity, EmotionalState, Posture, SimulationState } from "./engine/state/index.js";
 
 const state = new SimulationState({
   scene: {
@@ -18,7 +18,6 @@ const state = new SimulationState({
     positions: [
       { id: "chair-1/seat", kind: "seat", allowedPostures: [Posture.SITTING], allowedDirections: ["left", "right"] },
       { id: "floor-center", kind: "standing", allowedPostures: [Posture.STANDING], allowedDirections: ["front", "left", "right"] },
-      { id: "back-room-bed", allowedPostures: [Posture.SLEEPING] },
     ],
   },
   characterIds: ["felix-adebayo", "grace-kim"],
@@ -41,13 +40,14 @@ runtime state. Stable character ids refer to profiles in `/characters`.
   characters: {
     "felix-adebayo": {
       positionId: "window-chair",
-      posture: "sitting",       // standing | sitting | sleeping
+      posture: "sitting",       // standing | sitting
       facing: "left",           // front | left | right
-      activity: "talking",      // idle | talking | resting
+      activity: "talking",      // idle | talking | sleeping
       mood: {
         valence: 0.4,            // pleasantness: -1 unpleasant, 0 neutral, 1 pleasant
         energy: 0.65,            // 0 low to 1 high
         socialNeed: 0.3,         // 0 satisfied to 1 seeking company
+        emotionalState: "happy", // happy | sad | angry | neutral
       },
       memories: [{
         summary: "Grace recommended a late-night radio programme.",
@@ -62,7 +62,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
       positionId: "counter-spot",
       posture: "standing",
       activity: "talking",
-      mood: { valence: 0.2, energy: 0.8, socialNeed: 0.5 },
+      mood: { valence: 0.2, energy: 0.8, socialNeed: 0.5, emotionalState: "neutral" },
       memories: [],
       relationships: {},
       conversationId: "stargazing",
@@ -71,7 +71,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
   conversations: {
     stargazing: {
       id: "stargazing",
-      active: true,
+      status: "active",
       participants: ["felix-adebayo", "grace-kim"],
       topic: "astronomy",
       beats: [
@@ -80,7 +80,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
       ],
     },
   },
-  events: [{ type: "inspiration", summary: "Felix notices a familiar constellation.", participants: ["felix-adebayo"] }],
+  event: { type: "inspiration", summary: "Felix notices a familiar constellation.", participants: ["felix-adebayo"] },
 }
 ```
 
@@ -91,23 +91,35 @@ state shapes. `valence` means how pleasant or unpleasant a character feels;
 it is not a measure of energy. Add a new field to the relevant class and its
 field map in `simulation-state.ts` to make it available to mutation methods.
 
-- `Mood`: `valence`, `energy`, and `socialNeed`. Values are described above.
+- `Mood`: `valence`, `energy`, `socialNeed`, and `emotionalState`. The continuous
+  dimensions retain nuance; `EmotionalState` restricts the visible concrete
+  emotion to `happy`, `sad`, `angry`, or `neutral`.
 - `Relationship`: directed `affinity` and `trust`, both from -1 to 1. Negative
   values represent an unfavourable view; zero is neutral; positive is favourable.
 
 ## Mutations
 
-Use `placeCharacter`, `setPosture`, `setMood`, `remember`,
+Use `placeCharacter`, `setPosture`, `setActivity`, `setMood`, `remember`,
 `updateRelationship`, conversation methods, and `addEvent` rather than changing
 a snapshot. Mutations validate ids, posture and facing support, one-person places, value
 ranges, active-conversation membership, and bounded memories. Applied decisions
 are recorded with `recordDecision(summary)` and retained in full. Prompt
 builders independently select the configured number of recent summaries.
 
+Posture describes body placement and is limited to standing or sitting.
+Sleeping is an activity, is valid only while sitting, and uses the existing
+sitting-sleeping artwork. Talking activity is controlled by conversation
+lifecycle mutations rather than set directly.
+Starting a conversation requires its participants to occupy a declared scene
+pair and automatically turns them to that pair's configured facings.
+
 The state intentionally has no world clock, timestamps, elapsed duration, or
-pause flag. Beat-array order provides conversational ordering, and
-`conversation.active` represents lifecycle. User-facing pacing belongs to the
-future renderer/application rather than this state machine.
+pause flag. Beat-array order provides conversational ordering. Ending a
+conversation releases its participants and marks it `closing`, retaining its
+final beat through the rendered frame. Closing conversations are removed at
+the start of the next simulation iteration. Durable information from the
+exchange belongs in bounded character memories. User-facing pacing belongs to
+the future renderer/application rather than this state machine.
 
 Memories contain only `summary` and `importance`. Their default per-character
 capacity comes from `DEFAULT_SIMULATION_TUNING.memoryLimitPerCharacter` and
@@ -119,3 +131,12 @@ Conversation `beats` preserve ordered presentation state. A `say` beat stores
 exact dialogue and its speaker; a `pause` beat records an active listening or
 reflective step with no speech. Consecutive `say` beats may use the same
 speaker.
+
+## Random initial placement
+
+`placeCharactersRandomly` is a reusable initializer for placing a supplied set
+of characters at distinct scene positions. It chooses only postures and facing
+directions declared by those positions and applies them through
+`SimulationState.placeCharacter`. Pass a custom `random` function for seeded or
+deterministic behavior in tests; it must return values from `0` inclusive to
+`1` exclusive.

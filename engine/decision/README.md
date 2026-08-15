@@ -18,6 +18,34 @@ prompt-facing defaults for one provider instance. Pass `memoryLimit` when
 constructing `SimulationState` to override its centrally sourced memory
 capacity.
 
+`worldTendency` is a prompt-facing narrative prior from `-1` to `1`, defaulting
+to `0`. At `1`, the model is instructed to keep outcomes consistently peaceful,
+cooperative, happy, and fortunate. At `-1`, every step should introduce
+conflict, misfortune, danger, or a meaningful setback. Intermediate values
+interpolate the peaceful/fortunate versus adverse/conflict bias. This knob does
+not bypass world rules or character causality; it influences which valid,
+plausible development the model chooses.
+
+`pomposity` controls spoken style from slang-heavy, deliberately nonstandard
+speech at `-1` to ornate, Shakespeare-like rhetoric at `1`. Its neutral default
+strongly requests credible everyday dialogue: contractions, fragments, direct
+answers, ordinary vocabulary, hesitations, and uneven turns rather than poetic
+monologues. Vocabulary and fluency should fit character background without
+equating natural or simple speech with low intelligence.
+
+`worldDynamic` controls pacing from exceptionally quiet and still at `-1` to
+intensely hectic at `1`. Quiet worlds favor staying put, listening, pauses, and
+subtle state changes; hectic worlds favor movement, interruptions, rapid
+activity changes, and conversations that start and stop quickly. Even at `-1`,
+each simulation step still requires a meaningful change.
+
+This knob changes the concrete pacing values embedded in the prompt rather than
+adding flavor text alone. At `+1`, steps target 4–8 changes, conversations target
+1–3 spoken turns, and an active conversation at three turns is explicitly ended
+instead of continued. At `-1`, steps target 1–2 changes, conversation starts
+fall to 10% of eligible steps, and silence/listening become substantially more
+likely. At `0`, the configured baseline pacing values are preserved.
+
 Speaker selection is personality-first. The model weighs complete profiles,
 conversation style, mood, social need, relationships, topic, recent speakers,
 pauses, and unanswered dialogue. It must not alternate speakers mechanically:
@@ -57,12 +85,14 @@ applying each change.
 Conversation lifecycle uses three distinct actions:
 
 1. `startConversation` creates the conversation and assigns its new `id` to
-   its participants.
+   its participants. They must occupy a declared conversation pair; starting
+   automatically turns them to the pair's configured facings.
 2. `say` records one participant's exact spoken `text` using that id as
    `conversationId`. It may immediately follow `startConversation` in the same
    decision.
-3. `endConversation` closes the active conversation and releases its
-   participants.
+3. `endConversation` releases its participants and marks the conversation
+   `closing`, preserving its final beat for rendering. Closing conversations
+   accept no more beats and are removed automatically before the next step.
 
 `pauseConversation` adds an explicit active-conversation beat in which nobody
 speaks. It makes attentive silence representable without inventing an event,
@@ -77,6 +107,11 @@ sentences should become memories. Memory actions accept only `summary` and
 speech or replace any conversation lifecycle action; conversation-like event
 types are rejected locally.
 
+Only one event can be active. It is rendered for the frame produced by the
+decision that added it, then expires automatically before the next decision.
+The model may add it alongside other actions when the occurrence is important
+to understanding the world.
+
 Add a new action in three places: `WorldRules` validation, `applyDecision`, and
 the `ACTION_CATALOG` supplied by `buildDecisionContext`. This keeps provider
 implementations interchangeable while the simulation—not the model—owns its
@@ -86,6 +121,7 @@ rules.
 
 `OpenAIProvider` uses the Responses API and JSON Schema response formatting. It
 has no SDK dependency and accepts an injectable `fetch` for tests. It defaults
-to `gpt-5.6-sol`, but accepts a `model` override. Supply an API key at runtime;
-do not commit a key. The adapter requests JSON, while local rules remain the
-final authority over semantic validity.
+to the latency-oriented `gpt-5.6-luna`, but accepts a `model` override. Requests
+use low text verbosity and an 800-token output ceiling. Supply an API key at
+runtime; do not commit a key. The adapter requests JSON, while local rules remain
+the final authority over semantic validity.
