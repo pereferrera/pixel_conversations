@@ -1,2 +1,4 @@
-export { attachCharacterMoodHover, characterAssetKey, moodOverlayBounds, renderWorldToPng, topmostHitRegion } from "./render-world.js";
-export type { CharacterMoodHitRegion, CharacterMoodHoverBinding, RenderingConfig, RenderWorldRequest, RenderWorldResult } from "./render-world.js";
+export { characterAssetKey, renderWorldToPng } from "./render-world.js";
+export type { RenderingConfig, RenderWorldRequest, RenderWorldResult } from "./render-world.js";
+export { attachCharacterMoodHover, moodOverlayBounds, topmostHitRegion } from "./mood.js";
+export type { CharacterMoodHitRegion, CharacterMoodHoverBinding } from "./mood.js";

@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { EmotionalState } from "../engine/state/index.js";
-import { characterAssetKey, moodOverlayBounds, topmostHitRegion } from "./render-world.js";
-import type { CharacterMoodHitRegion } from "./render-world.js";
+import { characterAssetKey } from "./render-world.js";
+import { moodOverlayBounds, topmostHitRegion } from "./mood.js";
+import type { CharacterMoodHitRegion } from "./mood.js";
 
 function region(characterId: string, depth: number, x: number): CharacterMoodHitRegion {
   return {

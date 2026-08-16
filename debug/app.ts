@@ -1,7 +1,7 @@
 import { OpenAIProvider } from "../engine/provider/index.js";
 import { buildDecisionContext, WorldRules } from "../engine/decision/index.js";
 import { applyChange } from "../engine/decision/world-rules.js";
-import { Activity, ChangeType, ConversationStatus, placeCharactersRandomly, SimulationState } from "../engine/state/index.js";
+import { ChangeType, deserializeSimulationState, placeCharactersRandomly, restoreSimulationState, serializeSimulationState, SimulationState } from "../engine/state/index.js";
 import type { CharacterProfile, Scene, SimulationSnapshot } from "../engine/state/index.js";
 import { attachCharacterMoodHover, renderWorldToPng } from "../rendering/index.js";
 import type { CharacterMoodHoverBinding, RenderingConfig } from "../rendering/index.js";
@@ -17,6 +17,7 @@ const pomposityValue = element<HTMLOutputElement>("pomposity-value");
 const worldDynamicInput = element<HTMLInputElement>("world-dynamic");
 const worldDynamicValue = element<HTMLOutputElement>("world-dynamic-value");
 const simulateButton = element<HTMLButtonElement>("simulate");
+const autoSimulateInput = element<HTMLInputElement>("auto-simulate");
 const promptArea = element<HTMLTextAreaElement>("provider-request");
 const rawResponseArea = element<HTMLTextAreaElement>("raw-response");
 const stateArea = element<HTMLTextAreaElement>("world-state");
@@ -28,8 +29,11 @@ const status = element<HTMLElement>("status");
 const worldImage = element<HTMLImageElement>("world-image");
 const renderingMeta = element<HTMLElement>("rendering-meta");
 let world: WorldFile;
+let simulationState: SimulationState;
+let displayedStateJson = "";
 let worldImageUrl: string | null = null;
 let moodHoverBinding: CharacterMoodHoverBinding | null = null;
+let simulationBusy = false;
 
 for (const [input, output] of [
   [worldTendencyInput, worldTendencyValue],
@@ -47,23 +51,31 @@ fileInput.addEventListener("change", async () => {
   catch (error) { showError(error); }
 });
 
-simulateButton.addEventListener("click", async () => {
+simulateButton.addEventListener("click", () => void simulateNextStep());
+autoSimulateInput.addEventListener("change", () => {
+  if (autoSimulateInput.checked && !simulationBusy) void simulateNextStep();
+});
+
+async function simulateNextStep(): Promise<void> {
+  if (simulationBusy) return;
   try {
-    world.state = JSON.parse(stateArea.value);
-    const state = restoreState(world);
-    state.beginSimulationIteration();
-    world.state = state.snapshot();
-    stateArea.value = pretty(world.state);
-    const context = buildDecisionContext({ scene: world.scene, profiles: world.profiles, state: state.snapshot() });
-    const provider = new OpenAIProvider({
-      apiKey: "provided-by-local-proxy",
-      model: modelInput.value.trim() || "gpt-5.6-luna",
-      fetchImpl: captureProviderCall,
+    if (stateArea.value !== displayedStateJson) simulationState = deserializeSimulationState(stateArea.value, { scene: world.scene });
+    simulationState.beginSimulationIteration();
+    publishState();
+    const context = buildDecisionContext({
+      scene: world.scene,
+      profiles: world.profiles,
+      state: simulationState.snapshot(),
       tuning: {
         worldTendency: Number(worldTendencyInput.value),
         pomposity: Number(pomposityInput.value),
         worldDynamic: Number(worldDynamicInput.value),
       },
+    });
+    const provider = new OpenAIProvider({
+      apiKey: "provided-by-local-proxy",
+      model: modelInput.value.trim() || "gpt-5.6-luna",
+      fetchImpl: captureProviderCall,
     });
     setBusy(true);
     const decision = await provider.decide(context);
@@ -74,9 +86,9 @@ simulateButton.addEventListener("click", async () => {
     for (const [index, change] of decision.changes.entries()) {
       try {
         if (change.type === ChangeType.ADD_EVENT && eventApplied) throw new Error("A simulation step may add at most one event.");
-        const rules = new WorldRules({ scene: world.scene, state: state.snapshot() });
+        const rules = new WorldRules({ scene: world.scene, state: simulationState.snapshot() });
         rules.assertValid({ summary: decision.summary, changes: [change] });
-        applyChange(state, change);
+        applyChange(simulationState, change);
         if (change.type === ChangeType.ADD_EVENT) eventApplied = true;
         applied += 1;
       } catch (error) {
@@ -85,15 +97,19 @@ simulateButton.addEventListener("click", async () => {
         console.error(`Skipped action ${index}`, change, error);
       }
     }
-    if (applied > 0) state.recordDecision(decision.summary);
-    world.state = state.snapshot();
-    stateArea.value = pretty(world.state);
+    if (applied > 0) simulationState.recordDecision(decision.summary);
+    publishState();
     renderHistory(world.state.decisionHistory);
     await refreshWorldImage();
     setStatus(`Applied ${applied} of ${decision.changes.length} returned action(s).${skipped.length ? ` Skipped ${skipped.join(" · ")}` : ""}`, skipped.length > 0);
-  } catch (error) { showError(error); }
-  finally { setBusy(false); }
-});
+  } catch (error) {
+    autoSimulateInput.checked = false;
+    showError(error);
+  } finally {
+    setBusy(false);
+  }
+  if (autoSimulateInput.checked) void simulateNextStep();
+}
 
 async function captureProviderCall(_input: string | URL | Request, init?: RequestInit): Promise<Response> {
   const requestText = typeof init?.body === "string" ? init.body : "";
@@ -134,8 +150,19 @@ function loadWorld(value: unknown, randomizePlacements = false): void {
   }
   if (candidate.state.sceneId !== candidate.scene.id) throw new RangeError("state.sceneId must match scene.id.");
   world = structuredClone(candidate);
-  world.state = restoreState(world, randomizePlacements).snapshot();
-  stateArea.value = pretty(world.state);
+  if (randomizePlacements) {
+    const randomizedSnapshot = structuredClone(world.state);
+    randomizedSnapshot.conversations = {};
+    randomizedSnapshot.event = null;
+    for (const character of Object.values(randomizedSnapshot.characters)) {
+      Object.assign(character, { positionId: null, posture: "standing", facing: "front", activity: "idle", conversationId: null });
+    }
+    simulationState = restoreSimulationState(randomizedSnapshot, { scene: world.scene });
+    placeCharactersRandomly({ state: simulationState, scene: world.scene, characterIds: Object.keys(randomizedSnapshot.characters) });
+  } else {
+    simulationState = restoreSimulationState(world.state, { scene: world.scene });
+  }
+  publishState();
   actionsArea.value = "[]";
   renderHistory(world.state.decisionHistory ?? []);
   void refreshWorldImage().catch(showError);
@@ -154,29 +181,10 @@ async function refreshWorldImage(): Promise<void> {
   for (const warning of result.warnings) console.warn("Renderer:", warning);
 }
 
-function restoreState({ scene, state: snapshot }: WorldFile, randomizePlacements = false): SimulationState {
-  const state = new SimulationState({ scene, characterIds: Object.keys(snapshot.characters) });
-  for (const [id, character] of Object.entries(snapshot.characters)) {
-    if (!randomizePlacements && character.positionId) state.placeCharacter(id, character.positionId, character.posture, character.facing);
-    state.setMood(id, character.mood);
-    if (!randomizePlacements && character.activity === Activity.SLEEPING) state.setActivity(id, Activity.SLEEPING);
-    for (const memory of character.memories) state.remember(id, memory);
-    for (const [toId, relationship] of Object.entries(character.relationships)) state.updateRelationship(id, toId, relationship);
-  }
-  if (randomizePlacements) placeCharactersRandomly({ state, scene, characterIds: Object.keys(snapshot.characters) });
-  for (const conversation of Object.values(snapshot.conversations)) {
-    state.startConversation({ id: conversation.id, participants: conversation.participants, topic: conversation.topic });
-    for (const beat of conversation.beats) {
-      if (beat.type === "say") state.addConversationTurn(conversation.id, beat);
-      else state.pauseConversation(conversation.id);
-    }
-    if (conversation.status === ConversationStatus.CLOSING) state.endConversation(conversation.id);
-  }
-  const legacySnapshot = snapshot as SimulationSnapshot & { events?: Array<NonNullable<SimulationSnapshot["event"]>> };
-  const activeEvent = snapshot.event ?? legacySnapshot.events?.at(-1);
-  if (activeEvent) state.addEvent(activeEvent);
-  for (const summary of snapshot.decisionHistory ?? []) state.recordDecision(summary);
-  return state;
+function publishState(): void {
+  world.state = simulationState.snapshot();
+  displayedStateJson = serializeSimulationState(world.state, 2);
+  stateArea.value = displayedStateJson;
 }
 
 function element<T extends HTMLElement>(id: string): T {
@@ -203,6 +211,10 @@ function renderHistory(summaries: string[]): void {
   });
   historyList.replaceChildren(...items);
 }
-function setBusy(busy: boolean): void { simulateButton.disabled = busy; simulateButton.textContent = busy ? "Simulating…" : "Simulate next step"; }
+function setBusy(busy: boolean): void {
+  simulationBusy = busy;
+  simulateButton.disabled = busy;
+  simulateButton.textContent = busy ? "Simulating…" : "Simulate next step";
+}
 function setStatus(message: string, error = false): void { status.textContent = message; status.classList.toggle("error", error); }
 function showError(error: unknown): void { console.error(error); setStatus(error instanceof Error ? error.message : String(error), true); }

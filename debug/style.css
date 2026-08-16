@@ -14,7 +14,10 @@ h1 { margin: 4px 0 16px; font: 600 28px/1.2 system-ui, sans-serif; }
 .world-tendency-control { grid-area: tendency; }
 .pomposity-control { grid-area: pomposity; }
 .dynamic-control { grid-area: dynamic; }
-.simulate-control { grid-area: action; width: 220px; justify-self: start; }
+.simulation-controls { grid-area: action; display: flex; align-items: center; gap: 12px; }
+.simulation-controls button { width: 220px; }
+.controls .auto-control { display: flex; grid-template-columns: none; align-items: center; gap: 7px; color: #e8eaf0; cursor: pointer; font-size: 13px; }
+.auto-control input { min-height: 0; margin: 0; padding: 0; accent-color: #6372e7; }
 .tendency-control span { display: flex; justify-content: space-between; gap: 12px; }
 .tendency-control small { min-height: 2.8em; color: #8f9aaf; font: 12px/1.4 system-ui, sans-serif; }
 .tendency-control output { color: #e8eaf0; font-weight: 700; }
@@ -46,7 +49,7 @@ textarea { width: 100%; min-height: 300px; padding: 14px; resize: vertical; line
 textarea:focus, input:focus { outline: 2px solid #6372e7; outline-offset: 1px; }
 @media (max-width: 850px) {
   .controls { grid-template-columns: 1fr; grid-template-areas: "file" "model" "tendency" "pomposity" "dynamic" "action"; }
-  .simulate-control { width: 100%; }
+  .simulation-controls button { flex: 1; width: auto; }
   .panels { grid-template-columns: 1fr; }
   .state-panel { grid-row: auto; }
 }

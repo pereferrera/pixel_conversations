@@ -1,7 +1,8 @@
-import { AIProvider } from "./ai-provider.js";
-import { decisionPrompt, DECISION_JSON_SCHEMA } from "../decision/world-rules.js";
+import { Provider } from "./provider.js";
+import { DECISION_SYSTEM_PROMPT, decisionPrompt } from "../decision/ai.js";
+import { DECISION_JSON_SCHEMA } from "../decision/world-rules.js";
+import type { DecisionContext } from "../decision/decision-context.js";
 import type { SimulationDecision } from "../state/index.js";
-import type { SimulationTuning } from "../decision/simulation-tuning.js";
 
 export type FetchImplementation = (input: string | URL | Request, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "text" | "json">>;
 
@@ -9,12 +10,11 @@ export type FetchImplementation = (input: string | URL | Request, init?: Request
  * OpenAI Responses API implementation. Pass an API key at runtime; do not
  * commit it or embed it in client-side production code.
  */
-export class OpenAIProvider extends AIProvider {
+export class OpenAIProvider extends Provider {
   apiKey: string;
   model: string;
   fetch: FetchImplementation;
-  tuning: Partial<SimulationTuning>;
-  constructor({ apiKey, model = "gpt-5.6-luna", fetchImpl, tuning = {} }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation; tuning?: Partial<SimulationTuning> }) {
+  constructor({ apiKey, model = "gpt-5.6-luna", fetchImpl }: { apiKey: string; model?: string; fetchImpl?: FetchImplementation }) {
     super();
     if (!apiKey) throw new TypeError("OpenAIProvider requires an API key.");
     const resolvedFetch = fetchImpl ?? globalThis.fetch?.bind(globalThis);
@@ -22,10 +22,9 @@ export class OpenAIProvider extends AIProvider {
     this.apiKey = apiKey;
     this.model = model;
     this.fetch = resolvedFetch;
-    this.tuning = { ...tuning };
   }
 
-  async decide(context: unknown): Promise<SimulationDecision> {
+  async decide(context: DecisionContext): Promise<SimulationDecision> {
     const response = await this.fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -35,10 +34,10 @@ export class OpenAIProvider extends AIProvider {
       body: JSON.stringify({
         model: this.model,
         input: [
-          { role: "system", content: "You choose the next small, plausible changes in a quiet character simulation. Return only the requested structured decision. Never invent ids." },
-          { role: "user", content: decisionPrompt(context, this.tuning) },
+          { role: "system", content: DECISION_SYSTEM_PROMPT },
+          { role: "user", content: decisionPrompt(context) },
         ],
-        max_output_tokens: 800,
+        max_output_tokens: 2000,
         text: {
           verbosity: "low",
           format: { type: "json_schema", name: "simulation_decision", strict: false, schema: DECISION_JSON_SCHEMA },

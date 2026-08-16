@@ -1,6 +1,6 @@
 # State machine debugger
 
-This local browser utility sends the current JSON world to an `AIProvider`.
+This local browser utility sends the current JSON world to a `Provider`.
 It renders the current world as a PNG above the diagnostics and keeps the full
 provider boundary visible: the exact request and prompts, the
 untouched response body, the parsed actions, and the resulting world state.
@@ -49,8 +49,11 @@ shell takes precedence over the file. `debug/.env` is covered by the repository'
 Open <http://localhost:4173/debug/>. Stop the server with Ctrl+C. The build is
 written to `.debug-build/`; it can be removed at any time.
 
-Optionally change the model and click **Simulate next step**. The browser sends
-the provider request to the same-origin local endpoint at `/api/responses`.
+Optionally change the model and click **Simulate next step**. Check **Auto** to
+start immediately and request each next step after the current step has been
+applied and rendered. Uncheck it to stop after the in-flight step; errors stop
+auto mode as well. The browser sends the provider request to the same-origin
+local endpoint at `/api/responses`.
 The local server adds `OPENAI_API_KEY` and forwards it to OpenAI, avoiding CORS
 and keeping the secret out of browser code. The server binds to loopback only
 and is intended for local debugging, not deployment.
@@ -98,15 +101,16 @@ conversations. All three tuning values are visible in the exact provider prompt.
 The app delegates all asset loading, placement, depth ordering, speech bubbles,
 canvas work, and PNG encoding to `rendering/render-world.ts`.
 
-The snapshot is reconstructed through public `SimulationState` mutations when
-it is loaded and before every step, so malformed or impossible initial state is
-reported before an API request. The state textarea is editable; valid changes
-there become the input to the next step.
+The debugger retains a live `SimulationState` between steps. Loading a world or
+editing the state textarea uses the engine's reusable snapshot codec, which
+validates and defensively copies complete state without replaying the mutations
+that originally produced it. Unchanged textarea content therefore requires no
+reconstruction; valid manual edits become the input to the next step.
 
 After at least one returned action is applied, the debugger records the
-decision summary and shows every retained summary in **Simulated event
-summaries**. The prompt receives only the recent count configured by
-`promptHistoryLimit`.
+decision summary and shows the 30 most recently retained summaries in
+**Simulated event summaries**. The prompt receives only the recent count
+configured by `decisionHistoryLimit`.
 
 The app uses `OpenAIProvider` by default. To try another provider, instantiate
 it in `app.ts`; the remainder of the debugger depends only on `decide(context)`.

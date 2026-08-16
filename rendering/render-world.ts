@@ -1,5 +1,8 @@
-import { Activity, ConversationStatus } from "../engine/state/index.js";
+import { Activity } from "../engine/state/index.js";
 import type { CharacterProfile, CharacterState, FacingDirection, SimulationSnapshot } from "../engine/state/index.js";
+import { moodOverlayBounds } from "./mood.js";
+import type { CharacterMoodHitRegion, MoodOverlay } from "./mood.js";
+import { drawLatestSpeech, wrapText } from "./speech.js";
 
 interface Point { x: number; y: number }
 interface RenderPosition {
@@ -34,17 +37,8 @@ export interface RenderingConfig {
   moodAssets: Partial<Record<CharacterState["mood"]["emotionalState"], string>>;
 }
 export interface RenderWorldRequest { state: SimulationSnapshot; profiles: CharacterProfile[]; rendering: RenderingConfig }
-export interface CharacterMoodHitRegion {
-  characterId: string;
-  name: string;
-  bounds: { x: number; y: number; width: number; height: number };
-  depth: number;
-  mood: CharacterState["mood"];
-}
 export interface RenderWorldResult { png: Blob; warnings: string[]; characterMoodHitRegions: CharacterMoodHitRegion[] }
-export interface CharacterMoodHoverBinding { destroy(): void }
 interface Drawable { depth: number; url: string; x: number; y: number; width: number; height: number; moodUrl?: string; characterScale?: number }
-interface MoodOverlay { url: string; x: number; y: number; width: number; height: number }
 
 /** Render one serializable world snapshot into a PNG without exposing canvas logic to callers. */
 export async function renderWorldToPng({ state, profiles, rendering }: RenderWorldRequest): Promise<RenderWorldResult> {
@@ -170,121 +164,6 @@ export async function renderWorldToPng({ state, profiles, rendering }: RenderWor
   return { png: await canvasPng(canvas), warnings, characterMoodHitRegions };
 }
 
-/** Attach a reusable mood tooltip to an image produced by renderWorldToPng. */
-export function attachCharacterMoodHover(
-  image: HTMLImageElement,
-  hitRegions: CharacterMoodHitRegion[],
-): CharacterMoodHoverBinding {
-  const tooltip = document.createElement("div");
-  tooltip.setAttribute("role", "tooltip");
-  Object.assign(tooltip.style, {
-    position: "fixed",
-    zIndex: "1000",
-    display: "none",
-    pointerEvents: "none",
-    padding: "8px 10px",
-    border: "2px solid #25262b",
-    borderRadius: "6px",
-    background: "rgba(246, 238, 219, .97)",
-    color: "#241f1b",
-    font: "13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-    whiteSpace: "pre-line",
-    boxShadow: "0 4px 14px rgba(0, 0, 0, .25)",
-  });
-  document.body.append(tooltip);
-
-  const hide = () => { tooltip.style.display = "none"; };
-  const move = (event: PointerEvent) => {
-    const rect = image.getBoundingClientRect();
-    if (!rect.width || !rect.height || !image.naturalWidth || !image.naturalHeight) return hide();
-    const canvasX = (event.clientX - rect.left) * image.naturalWidth / rect.width;
-    const canvasY = (event.clientY - rect.top) * image.naturalHeight / rect.height;
-    const region = topmostHitRegion(hitRegions, canvasX, canvasY);
-    if (!region) return hide();
-    const { emotionalState, valence, energy, socialNeed } = region.mood;
-    tooltip.textContent = `${region.name}\n${emotionalState}\nvalence ${formatMoodValue(valence)} · energy ${formatMoodValue(energy)} · social need ${formatMoodValue(socialNeed)}`;
-    tooltip.style.left = `${event.clientX + 14}px`;
-    tooltip.style.top = `${event.clientY + 14}px`;
-    tooltip.style.display = "block";
-  };
-  image.addEventListener("pointermove", move);
-  image.addEventListener("pointerleave", hide);
-  return {
-    destroy() {
-      image.removeEventListener("pointermove", move);
-      image.removeEventListener("pointerleave", hide);
-      tooltip.remove();
-    },
-  };
-}
-
-export function topmostHitRegion(hitRegions: CharacterMoodHitRegion[], x: number, y: number): CharacterMoodHitRegion | null {
-  let match: CharacterMoodHitRegion | null = null;
-  for (const region of hitRegions) {
-    const bounds = region.bounds;
-    if (x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height) {
-      if (!match || region.depth >= match.depth) match = region;
-    }
-  }
-  return match;
-}
-
-function formatMoodValue(value: number): string { return value.toFixed(2).replace(/0+$/, "").replace(/\.$/, ""); }
-
-function drawLatestSpeech(context: CanvasRenderingContext2D, state: SimulationSnapshot, profiles: CharacterProfile[], anchors: Map<string, Point>, canvasWidth: number): void {
-  const last = Object.values(state.conversations)
-    .filter(({ status }) => status === ConversationStatus.ACTIVE || status === ConversationStatus.CLOSING)
-    .at(-1)?.beats.at(-1);
-  if (!last || last.type !== "say") return;
-  const anchor = anchors.get(last.speakerId);
-  if (!anchor) return;
-  const speakerName = profileName(profiles, last.speakerId);
-  const maxWidth = 480;
-  const horizontalPadding = 16;
-  const verticalPadding = 12;
-  const headerHeight = 16;
-  const headerBodyGap = 7;
-  const bodyLineHeight = 22;
-  context.font = "16px DejaVu Sans, system-ui, sans-serif";
-  const lines = wrapText(context, last.text, maxWidth - horizontalPadding * 2);
-  context.font = "bold 13px DejaVu Sans, system-ui, sans-serif";
-  const headerWidth = context.measureText(speakerName).width;
-  context.font = "16px DejaVu Sans, system-ui, sans-serif";
-  const bodyWidth = Math.max(...lines.map((line) => context.measureText(line).width), 0);
-  const width = Math.min(maxWidth, Math.max(220, headerWidth + horizontalPadding * 2, bodyWidth + horizontalPadding * 2));
-  const height = verticalPadding * 2 + headerHeight + headerBodyGap + lines.length * bodyLineHeight;
-  const x = Math.max(12, Math.min(canvasWidth - width - 12, anchor.x - width / 2));
-  const y = Math.max(12, anchor.y - height - 30);
-  context.fillStyle = "rgba(246, 238, 219, .97)";
-  context.strokeStyle = "#25262b";
-  context.lineWidth = 3;
-  const radius = 12;
-  const tailCenterX = Math.max(x + radius + 10, Math.min(x + width - radius - 10, anchor.x));
-  context.beginPath();
-  context.moveTo(x + radius, y);
-  context.lineTo(x + width - radius, y);
-  context.quadraticCurveTo(x + width, y, x + width, y + radius);
-  context.lineTo(x + width, y + height - radius);
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  context.lineTo(tailCenterX + 10, y + height);
-  context.lineTo(anchor.x, y + height + 16);
-  context.lineTo(tailCenterX - 10, y + height);
-  context.lineTo(x + radius, y + height);
-  context.quadraticCurveTo(x, y + height, x, y + height - radius);
-  context.lineTo(x, y + radius);
-  context.quadraticCurveTo(x, y, x + radius, y);
-  context.closePath();
-  context.fill();
-  context.stroke();
-  context.fillStyle = "#5e554a";
-  context.font = "bold 13px DejaVu Sans, system-ui, sans-serif";
-  context.fillText(speakerName, x + horizontalPadding, y + verticalPadding + 12);
-  context.fillStyle = "#241f1b";
-  context.font = "16px DejaVu Sans, system-ui, sans-serif";
-  const bodyY = y + verticalPadding + headerHeight + headerBodyGap + 16;
-  lines.forEach((line, index) => context.fillText(line, x + horizontalPadding, bodyY + index * bodyLineHeight));
-}
-
 function drawActiveEvent(context: CanvasRenderingContext2D, state: SimulationSnapshot, canvasWidth: number): void {
   if (!state.event) return;
   const maxWidth = Math.min(620, canvasWidth - 32);
@@ -317,19 +196,6 @@ function drawActiveEvent(context: CanvasRenderingContext2D, state: SimulationSna
   lines.forEach((line, index) => context.fillText(line, x + horizontalPadding, bodyY + index * lineHeight));
 }
 
-function wrapText(context: CanvasRenderingContext2D, text: string, width: number): string[] {
-  const lines: string[] = [];
-  for (const paragraph of text.split(/\r?\n/)) {
-    let line = "";
-    for (const word of paragraph.trim().split(/\s+/).filter(Boolean)) {
-      const next = line ? `${line} ${word}` : word;
-      if (line && context.measureText(next).width > width) { lines.push(line); line = word; } else line = next;
-    }
-    if (line) lines.push(line);
-    else if (!paragraph.trim()) lines.push("");
-  }
-  return lines.length ? lines : [""];
-}
 function profileName(profiles: CharacterProfile[], characterId: string): string {
   const identity = profiles.find(({ id }) => id === characterId)?.identity;
   if (identity && typeof identity === "object" && "name" in identity && typeof identity.name === "string") return identity.name;
@@ -340,21 +206,6 @@ export function characterAssetKey(character: Pick<CharacterState, "activity" | "
   return character.activity === Activity.SLEEPING
     ? `sitting-sleeping/${sideFacing(character.facing)}`
     : `${character.posture}/${character.facing}/neutral`;
-}
-export function moodOverlayBounds(
-  character: { characterX: number; characterY: number; characterWidth: number; topOpaqueRow: number; scale: number },
-  url: string,
-): MoodOverlay {
-  const logicalIconSize = 16;
-  const gap = 2 * character.scale;
-  const size = logicalIconSize * character.scale;
-  return {
-    url,
-    x: character.characterX + (character.characterWidth - size) / 2,
-    y: Math.max(2, character.characterY + character.topOpaqueRow * character.scale - size - gap),
-    width: size,
-    height: size,
-  };
 }
 function topOpaqueRow(image: HTMLImageElement): number {
   const canvas = document.createElement("canvas");
@@ -375,3 +226,6 @@ function absoluteUrl(path: string): string { return new URL(path, document.baseU
 async function getJson<T>(url: string): Promise<T> { const response = await fetch(url); if (!response.ok) throw new Error(`Could not load render asset ${url} (${response.status}).`); return response.json() as Promise<T>; }
 async function loadImage(url: string): Promise<HTMLImageElement> { const image = new Image(); image.src = url; await image.decode(); return image; }
 function canvasPng(canvas: HTMLCanvasElement): Promise<Blob> { return new Promise((resolve, reject) => canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Could not encode the rendered world as PNG.")), "image/png")); }
+
+export { attachCharacterMoodHover, moodOverlayBounds, topmostHitRegion } from "./mood.js";
+export type { CharacterMoodHitRegion, CharacterMoodHoverBinding } from "./mood.js";

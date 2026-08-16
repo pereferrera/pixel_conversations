@@ -36,7 +36,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
   decisionHistory: [
     "Felix joined Grace near the counter.",
     "They began discussing astronomy.",
-  ], // all applied decision summaries
+  ], // up to the 30 most recent applied decision summaries
   characters: {
     "felix-adebayo": {
       positionId: "window-chair",
@@ -47,7 +47,7 @@ runtime state. Stable character ids refer to profiles in `/characters`.
         valence: 0.4,            // pleasantness: -1 unpleasant, 0 neutral, 1 pleasant
         energy: 0.65,            // 0 low to 1 high
         socialNeed: 0.3,         // 0 satisfied to 1 seeking company
-        emotionalState: "happy", // happy | sad | angry | neutral
+        emotionalState: "happy", // happy | sad | angry | afraid | neutral
       },
       memories: [{
         summary: "Grace recommended a late-night radio programme.",
@@ -93,7 +93,7 @@ field map in `simulation-state.ts` to make it available to mutation methods.
 
 - `Mood`: `valence`, `energy`, `socialNeed`, and `emotionalState`. The continuous
   dimensions retain nuance; `EmotionalState` restricts the visible concrete
-  emotion to `happy`, `sad`, `angry`, or `neutral`.
+  emotion to `happy`, `sad`, `angry`, `afraid`, or `neutral`.
 - `Relationship`: directed `affinity` and `trust`, both from -1 to 1. Negative
   values represent an unfavourable view; zero is neutral; positive is favourable.
 
@@ -103,8 +103,9 @@ Use `placeCharacter`, `setPosture`, `setActivity`, `setMood`, `remember`,
 `updateRelationship`, conversation methods, and `addEvent` rather than changing
 a snapshot. Mutations validate ids, posture and facing support, one-person places, value
 ranges, active-conversation membership, and bounded memories. Applied decisions
-are recorded with `recordDecision(summary)` and retained in full. Prompt
-builders independently select the configured number of recent summaries.
+are recorded with `recordDecision(summary)`. The state retains the 30 most
+recent summaries; prompt builders independently select the configured number
+of recent summaries from that bounded history.
 
 Posture describes body placement and is limited to standing or sitting.
 Sleeping is an activity, is valid only while sitting, and uses the existing

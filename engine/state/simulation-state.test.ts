@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Activity, ConversationStatus, EmotionalState, Posture, SimulationState } from "./index.js";
+import { Activity, ConversationStatus, DECISION_HISTORY_LIMIT, deserializeSimulationState, EmotionalState, Posture, restoreSimulationState, serializeSimulationState, SimulationState } from "./index.js";
 
 const scene = {
   id: "library",
@@ -43,14 +43,26 @@ test("memories drop the least important item and snapshots cannot mutate state",
   assert.equal(state.snapshot().characters["felix-adebayo"].mood.energy, 0.5);
 });
 
-test("decision history retains every summary", () => {
+test("decision history retains only the most recent summaries", () => {
   const state = makeState();
-  for (let index = 0; index < 22; index += 1) {
+  for (let index = 0; index < DECISION_HISTORY_LIMIT + 2; index += 1) {
     state.recordDecision(`step ${index}`);
   }
-  assert.equal(state.snapshot().decisionHistory.length, 22);
-  assert.equal(state.snapshot().decisionHistory[0], "step 0");
+  assert.equal(state.snapshot().decisionHistory.length, DECISION_HISTORY_LIMIT);
+  assert.equal(state.snapshot().decisionHistory[0], "step 2");
+  assert.equal(state.snapshot().decisionHistory.at(-1), `step ${DECISION_HISTORY_LIMIT + 1}`);
   assert.throws(() => state.recordDecision("  "), /non-empty summary/);
+});
+
+test("snapshot restoration retains only the most recent decision summaries", () => {
+  const snapshot = makeState().snapshot();
+  snapshot.decisionHistory = Array.from({ length: DECISION_HISTORY_LIMIT + 2 }, (_, index) => `step ${index}`);
+
+  const restored = restoreSimulationState(snapshot, { scene, memoryLimit: 2 }).snapshot();
+
+  assert.equal(restored.decisionHistory.length, DECISION_HISTORY_LIMIT);
+  assert.equal(restored.decisionHistory[0], "step 2");
+  assert.equal(restored.decisionHistory.at(-1), `step ${DECISION_HISTORY_LIMIT + 1}`);
 });
 
 test("conversations update participant activity and validate beats", () => {
@@ -77,6 +89,40 @@ test("conversations update participant activity and validate beats", () => {
   assert.deepEqual(snapshot.characters["felix-adebayo"].memories, [
     { summary: "Grace listened to his observation.", importance: 0.7 },
   ]);
+});
+
+test("state JSON round-trips a closing conversation after its participants move apart", () => {
+  const state = makeState();
+  state.placeCharacter("felix-adebayo", "desk", Posture.SITTING);
+  state.placeCharacter("grace-kim", "sofa", Posture.SITTING);
+  state.startConversation({ id: "finished-chat", participants: ["felix-adebayo", "grace-kim"], topic: "notes" });
+  state.addConversationTurn("finished-chat", { speakerId: "grace-kim", text: "Let's leave it there." });
+  state.endConversation("finished-chat");
+  state.placeCharacter("felix-adebayo", "window", Posture.STANDING);
+  state.placeCharacter("grace-kim", "desk", Posture.SITTING);
+
+  const json = serializeSimulationState(state, 2);
+  const restored = deserializeSimulationState(json, { scene, memoryLimit: 2 });
+  assert.deepEqual(restored.snapshot(), state.snapshot());
+  restored.beginSimulationIteration();
+  assert.equal(restored.snapshot().conversations["finished-chat"], undefined);
+});
+
+test("snapshot restoration validates active state and defensively copies its input", () => {
+  const state = makeState();
+  state.placeCharacter("felix-adebayo", "desk", Posture.SITTING);
+  state.placeCharacter("grace-kim", "sofa", Posture.SITTING);
+  state.startConversation({ id: "active-chat", participants: ["felix-adebayo", "grace-kim"] });
+  const snapshot = state.snapshot();
+  const restored = restoreSimulationState(snapshot, { scene, memoryLimit: 2 });
+  snapshot.characters["felix-adebayo"].mood.energy = 0;
+  assert.equal(restored.snapshot().characters["felix-adebayo"].mood.energy, 0.5);
+
+  const invalid = state.snapshot();
+  invalid.characters["grace-kim"].positionId = "window";
+  invalid.characters["grace-kim"].posture = Posture.STANDING;
+  invalid.characters["grace-kim"].facing = "front";
+  assert.throws(() => restoreSimulationState(invalid, { scene, memoryLimit: 2 }), /Active conversation active-chat/);
 });
 
 test("relationships are constrained", () => {
@@ -119,7 +165,9 @@ test("emotional states are constrained while continuous mood dimensions remain a
     socialNeed: 0.5,
     emotionalState: EmotionalState.SAD,
   });
-  assert.throws(() => state.setMood("felix-adebayo", { emotionalState: "excited" as EmotionalState }), /happy, sad, angry, or neutral/);
+  state.setMood("felix-adebayo", { emotionalState: EmotionalState.AFRAID });
+  assert.equal(state.snapshot().characters["felix-adebayo"].mood.emotionalState, EmotionalState.AFRAID);
+  assert.throws(() => state.setMood("felix-adebayo", { emotionalState: "excited" as EmotionalState }), /happy, sad, angry, afraid, or neutral/);
 });
 
 test("sleeping is an activity allowed only while sitting", () => {

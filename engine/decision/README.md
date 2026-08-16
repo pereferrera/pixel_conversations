@@ -1,20 +1,20 @@
-# AI Decision Layer
+# Decision Layer
 
-The AI layer proposes a small, typed decision; it never edits simulation state
+A provider proposes a small, typed decision; it never edits simulation state
 directly. `SimulationDirector` builds a complete context from the scene
 definition, all selected character profiles, and the current state snapshot
 (including memories, events, relationships, and conversation history), sends it
-to an `AIProvider`, validates the result with `WorldRules`, then applies valid
+to a `Provider`, validates the result with `WorldRules`, then applies valid
 changes through `SimulationState`. Each step requires at least one change. Once
 applied, its summary joins the complete state history. By default, only the
 newest 20 entries are included in the next prompt, oldest to newest.
 
 Simulation pacing lives in `DEFAULT_SIMULATION_TUNING` in
-`simulation-tuning.ts`. It controls prompt history length, typical change and
+`simulation-tuning.ts`. It controls decision history length, typical change and
 conversation lengths, fallback speech/listening/same-speaker tendencies, memory
 capacity, conversation-end memory behavior, and extraordinary-memory
-thresholds. Pass a partial `tuning` object to `OpenAIProvider` to override
-prompt-facing defaults for one provider instance. Pass `memoryLimit` when
+thresholds. Pass a partial `tuning` object to `SimulationDirector`; it resolves
+the settings and includes them in `DecisionContext` for every provider. Pass `memoryLimit` when
 constructing `SimulationState` to override its centrally sourced memory
 capacity.
 

@@ -74,7 +74,8 @@
     "moodAssets": {
       "happy": "/assets/moods/happy.png",
       "sad": "/assets/moods/sad.png",
-      "angry": "/assets/moods/angry.png"
+      "angry": "/assets/moods/angry.png",
+      "afraid": "/assets/moods/afraid.png"
     }
   },
   "state": {

@@ -2,11 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Activity, ChangeType, ConversationStatus, EmotionalState, Posture, SimulationState } from "../state/index.js";
 import type { SimulationDecision } from "../state/index.js";
+import { buildDecisionContext } from "./decision-context.js";
 import type { DecisionContext } from "./decision-context.js";
 import { OpenAIProvider } from "../provider/index.js";
 import { SimulationDirector } from "./simulation-director.js";
-import { applyDecision, DECISION_JSON_SCHEMA, decisionPrompt, dynamicPacing, pomposityInstruction, worldDynamicInstruction, worldTendencyInstruction, WorldRuleViolation, WorldRules } from "./world-rules.js";
+import { decisionPrompt, pomposityInstruction, worldDynamicInstruction, worldTendencyInstruction } from "./ai.js";
+import { applyDecision, DECISION_JSON_SCHEMA, WorldRuleViolation, WorldRules } from "./world-rules.js";
+import { dynamicPacing } from "./simulation-tuning.js";
 import { resolveSimulationTuning } from "./simulation-tuning.js";
+import type { SimulationTuning } from "./simulation-tuning.js";
 
 const scene = { id: "cafe", positions: [
   { id: "chair", label: "Window chair", kind: "seat" as const, allowedPostures: [Posture.SITTING], allowedDirections: ["left", "right"] as ("left" | "right")[], renderer: { kind: "seat" as const, elementInstanceId: "chair-1", seatId: "seat" } },
@@ -33,6 +37,13 @@ function setupWithoutConversation() {
   state.placeCharacter("felix-adebayo", "chair", Posture.SITTING, "right");
   state.placeCharacter("grace-kim", "counter", Posture.STANDING, "front");
   return state;
+}
+
+function decisionContext(decisionHistory: string[] = [], tuning: Partial<SimulationTuning> = {}): DecisionContext {
+  const state = setup();
+  const snapshot = state.snapshot();
+  snapshot.decisionHistory = decisionHistory;
+  return buildDecisionContext({ scene, profiles, state: snapshot, tuning });
 }
 
 test("world rules reject two simultaneous speech beats in one conversation", () => {
@@ -165,7 +176,7 @@ test("director gives complete context to a provider and applies only valid chang
       { type: ChangeType.SET_MOOD, characterId: "felix-adebayo", mood: { valence: 0.3, emotionalState: EmotionalState.HAPPY } },
     ] };
   } };
-  const result = await new SimulationDirector({ provider, scene, profiles, state }).decideNext();
+  const result = await new SimulationDirector({ provider, scene, profiles, state, tuning: { worldDynamic: 0.5 } }).decideNext();
   assert.equal(context.scene.id, "cafe");
   assert.equal(context.scene.positions[0].occupiedBy, "felix-adebayo");
   assert.deepEqual(context.scene.conversationPairs, scene.conversationPairs);
@@ -175,6 +186,8 @@ test("director gives complete context to a provider and applies only valid chang
   assert.equal(context.characters.length, 2);
   assert.equal(context.state.conversations.stars.beats.length, 0);
   assert.deepEqual(context.state.decisionHistory, ["Grace arrived at the counter."]);
+  assert.equal(context.tuning.worldDynamic, 0.5);
+  assert.equal(context.tuning.decisionHistoryLimit, 20);
   assert.equal(result.snapshot.conversations.stars.beats.length, 1);
   assert.deepEqual(result.snapshot.decisionHistory, ["Grace arrived at the counter.", "Felix shares an observation."]);
   assert.equal(result.snapshot.characters["grace-kim"].memories.length, 1);
@@ -184,10 +197,11 @@ test("director gives complete context to a provider and applies only valid chang
 
 test("decision prompt requires changes and appends recent world summaries", () => {
   const prompt = decisionPrompt(
-    { state: { decisionHistory: ["Grace arrived.", "Felix spoke."] } },
-    { promptHistoryLimit: 1, typicalChangesMin: 3, typicalChangesMax: 5, conversationStartLikelihoodPercent: 60, conversationTurnLikelihoodPercent: 90 },
+    decisionContext(["Grace arrived.", "Felix spoke."], { decisionHistoryLimit: 1, typicalChangesMin: 3, typicalChangesMax: 5, conversationStartLikelihoodPercent: 60, conversationTurnLikelihoodPercent: 90 }),
   );
   assert.match(prompt, /Usually make 3 to 5 meaningful changes\. Zero changes are not allowed\./);
+  assert.match(prompt, /Use decisionHistory as a guide to avoid repeating the same patterns and stories/);
+  assert.match(prompt, /do not repeat or lightly paraphrase the same actions, conflicts, conversation cycles, events, hazards, or outcomes/);
   assert.match(prompt, /WORLD TENDENCY 0: Keep outcomes balanced/);
   assert.match(prompt, /IMPORTANT—write dialogue that sounds spoken by real people, not literary narration/);
   assert.match(prompt, /WORLD DYNAMIC 0:/);
@@ -206,9 +220,10 @@ test("decision prompt requires changes and appends recent world summaries", () =
   assert.match(prompt, /"type":"endConversation"/);
   assert.match(prompt, /action field contracts and position affordances/);
   assert.match(prompt, /Every change uses `type`, never `action`/);
-  assert.match(prompt, /only allowed values are happy, sad, angry, and neutral/);
+  assert.match(prompt, /only allowed values are happy, sad, angry, afraid, and neutral/);
   assert.match(prompt, /hurtful words, disappointment, loss, rejection/);
   assert.match(prompt, /going without social contact for a while may trigger sad/);
+  assert.match(prompt, /danger, a credible threat, sudden alarm, or feeling unsafe may trigger afraid/);
   assert.match(prompt, /Sleeping is an activity, never a posture/);
   assert.match(prompt, /RECENT WORLD CHANGE SUMMARIES \(oldest to newest\):/);
   assert.match(prompt, /\["Felix spoke\."\]$/);
@@ -235,7 +250,7 @@ test("simulation tuning rejects invalid ranges", () => {
   assert.throws(() => resolveSimulationTuning({ worldTendency: 1.01 }), /worldTendency must be between -1 and 1/);
   assert.throws(() => resolveSimulationTuning({ pomposity: -1.01 }), /pomposity must be between -1 and 1/);
   assert.throws(() => resolveSimulationTuning({ worldDynamic: 1.01 }), /worldDynamic must be between -1 and 1/);
-  assert.throws(() => resolveSimulationTuning({ promptHistoryLimit: 0 }), /positive integer/);
+  assert.throws(() => resolveSimulationTuning({ decisionHistoryLimit: 0 }), /positive integer/);
   assert.throws(() => resolveSimulationTuning({ conversationTurnLikelihoodPercent: 101 }), /between 0 and 100/);
   assert.throws(() => resolveSimulationTuning({ typicalChangesMin: 5, typicalChangesMax: 2 }), /ordered/);
   assert.throws(() => resolveSimulationTuning({ typicalConversationMinTurns: 8, typicalConversationMaxTurns: 4 }), /turn counts must be ordered/);
@@ -268,17 +283,22 @@ test("world dynamic interpolates pacing and preserves changes at the quiet endpo
 });
 
 test("hectic prompt replaces balanced conversation guidance with concrete short limits", () => {
-  const prompt = decisionPrompt({ state: { decisionHistory: [] } }, { worldDynamic: 1 });
+  const prompt = decisionPrompt(decisionContext([], { worldDynamic: 1 }));
   assert.match(prompt, /Usually make 4 to 8 meaningful changes/);
   assert.match(prompt, /start a conversation in about 95%/);
   assert.match(prompt, /Conversations must be brief and hectic: target 1 to 3 spoken turns total/);
   assert.match(prompt, /already has 3 spoken turns, end it in this step/);
+  assert.match(prompt, /meaningful transitions between situations/);
+  assert.match(prompt, /do not repeat equivalent actions, recycle the same conflict, or immediately restart a recently ended conversation/);
+  assert.match(prompt, /Conversation turnover must advance the story rather than restart the same exchange/);
   assert.doesNotMatch(prompt, /engaged conversations may continue longer/);
 });
 
 test("world tendency produces monotonic narrative guidance including strict endpoints", () => {
   assert.match(worldTendencyInstruction(1), /consistently happy, peaceful, cooperative, and fortunate/);
-  assert.match(worldTendencyInstruction(-1), /every step go sideways/);
+  assert.match(worldTendencyInstruction(-1), /adverse consequences/);
+  assert.match(worldTendencyInstruction(-1), /Do not prolong a setback merely by restating it/);
+  assert.match(worldTendencyInstruction(-1), /Resolve or materially transform the current problem/);
   assert.match(worldTendencyInstruction(0.4), /70% peaceful\/fortunate outcomes and 30% adverse\/conflict outcomes/);
   assert.match(worldTendencyInstruction(-0.4), /30% peaceful\/fortunate outcomes and 70% adverse\/conflict outcomes/);
 });
@@ -297,9 +317,9 @@ test("OpenAI provider sends the context using a structured Responses request", a
     request = JSON.parse(options?.body as string);
     return { ok: true, status: 200, text: async () => "", json: async () => ({ output_text: '{"summary":"quiet","changes":[]}' }) };
   } });
-  const result = await provider.decide({ scene, characters: profiles, state: setup().snapshot(), rules: {} });
+  const result = await provider.decide(decisionContext());
   assert.equal(request.model, "test-model");
-  assert.equal(request.max_output_tokens, 800);
+  assert.equal(request.max_output_tokens, 2000);
   assert.equal(request.text.verbosity, "low");
   assert.equal(request.text.format.type, "json_schema");
   assert.deepEqual(result, { summary: "quiet", changes: [] });
@@ -331,7 +351,7 @@ test("OpenAI provider parses output text from the raw Responses REST payload", a
     }),
   }) });
 
-  assert.deepEqual(await provider.decide({}), { summary: "quiet", changes: [] });
+  assert.deepEqual(await provider.decide(decisionContext()), { summary: "quiet", changes: [] });
 });
 
 test("OpenAI provider binds the default fetch implementation", async () => {
@@ -347,7 +367,7 @@ test("OpenAI provider binds the default fetch implementation", async () => {
 
   try {
     const provider = new OpenAIProvider({ apiKey: "test-key" });
-    await provider.decide({});
+    await provider.decide(decisionContext());
   } finally {
     globalThis.fetch = originalFetch;
   }

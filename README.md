@@ -50,13 +50,13 @@ Future persistence can always be added later, but it is intentionally outside th
 
 ---
 
-## AI Provider
+## Provider
 
-All conversations are generated through external AI APIs.
+All simulation decisions are requested through a generic provider interface.
 
 The engine communicates with providers through an abstraction layer, making it possible to swap providers without affecting the rest of the application.
 
-Example providers may include:
+Provider implementations may use services such as:
 
 - OpenAI
 - Anthropic

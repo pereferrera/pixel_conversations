@@ -2,7 +2,7 @@ export interface SimulationTuning {
   worldTendency: number;
   pomposity: number;
   worldDynamic: number;
-  promptHistoryLimit: number;
+  decisionHistoryLimit: number;
   typicalChangesMin: number;
   typicalChangesMax: number;
   conversationStartLikelihoodPercent: number;
@@ -18,15 +18,26 @@ export interface SimulationTuning {
   defaultSameSpeakerContinuationLikelihoodPercent: number;
 }
 
+export interface DynamicPacing {
+  typicalChangesMin: number;
+  typicalChangesMax: number;
+  conversationStartLikelihoodPercent: number;
+  conversationTurnLikelihoodPercent: number;
+  typicalConversationMinTurns: number;
+  typicalConversationMaxTurns: number;
+  defaultListeningPauseLikelihoodPercent: number;
+  defaultSameSpeakerContinuationLikelihoodPercent: number;
+}
+
 /**
- * Central defaults for state limits, simulation pacing, and prompt context.
+ * Central defaults for state limits, simulation pacing, and decision context.
  * Consumers may override relevant values where they construct state/providers.
  */
 export const DEFAULT_SIMULATION_TUNING: Readonly<SimulationTuning> = Object.freeze({
   worldTendency: 0,
   pomposity: 0,
   worldDynamic: 0,
-  promptHistoryLimit: 20,
+  decisionHistoryLimit: 20,
   typicalChangesMin: 2,
   typicalChangesMax: 4,
   conversationStartLikelihoodPercent: 70,
@@ -47,7 +58,7 @@ export function resolveSimulationTuning(overrides: Partial<SimulationTuning> = {
   signed(tuning.worldTendency, "worldTendency");
   signed(tuning.pomposity, "pomposity");
   signed(tuning.worldDynamic, "worldDynamic");
-  positiveInteger(tuning.promptHistoryLimit, "promptHistoryLimit");
+  positiveInteger(tuning.decisionHistoryLimit, "decisionHistoryLimit");
   positiveInteger(tuning.typicalChangesMin, "typicalChangesMin");
   positiveInteger(tuning.typicalChangesMax, "typicalChangesMax");
   if (tuning.typicalChangesMin > tuning.typicalChangesMax || tuning.typicalChangesMax > 12) {
@@ -70,6 +81,21 @@ export function resolveSimulationTuning(overrides: Partial<SimulationTuning> = {
   return tuning;
 }
 
+export function dynamicPacing(tuning: SimulationTuning): DynamicPacing {
+  const amount = Math.abs(tuning.worldDynamic);
+  const hectic = tuning.worldDynamic > 0;
+  return {
+    typicalChangesMin: interpolate(tuning.typicalChangesMin, hectic ? 4 : 1, amount),
+    typicalChangesMax: interpolate(tuning.typicalChangesMax, hectic ? 8 : 2, amount),
+    conversationStartLikelihoodPercent: interpolate(tuning.conversationStartLikelihoodPercent, hectic ? 95 : 10, amount),
+    conversationTurnLikelihoodPercent: interpolate(tuning.conversationTurnLikelihoodPercent, hectic ? 95 : 30, amount),
+    typicalConversationMinTurns: interpolate(tuning.typicalConversationMinTurns, 1, amount),
+    typicalConversationMaxTurns: interpolate(tuning.typicalConversationMaxTurns, 3, amount),
+    defaultListeningPauseLikelihoodPercent: interpolate(tuning.defaultListeningPauseLikelihoodPercent, hectic ? 5 : 60, amount),
+    defaultSameSpeakerContinuationLikelihoodPercent: interpolate(tuning.defaultSameSpeakerContinuationLikelihoodPercent, hectic ? 20 : 15, amount),
+  };
+}
+
 function positiveInteger(value: number, label: string): void {
   if (!Number.isInteger(value) || value < 1) throw new RangeError(`${label} must be a positive integer.`);
 }
@@ -84,4 +110,8 @@ function unit(value: number, label: string): void {
 
 function signed(value: number, label: string): void {
   if (!Number.isFinite(value) || value < -1 || value > 1) throw new RangeError(`${label} must be between -1 and 1.`);
+}
+
+function interpolate(from: number, to: number, amount: number): number {
+  return Math.round(from + (to - from) * amount);
 }

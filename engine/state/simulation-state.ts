@@ -20,6 +20,7 @@ export enum EmotionalState {
   SAD = "sad",
   ANGRY = "angry",
   NEUTRAL = "neutral",
+  AFRAID = "afraid",
 }
 
 export enum ConversationStatus {
@@ -108,6 +109,7 @@ export interface SimulationSnapshot {
   conversations: Record<string, Conversation>;
   event: WorldEvent | null;
 }
+export interface SimulationStateRestoreOptions { scene: Scene; snapshot: unknown; memoryLimit?: number }
 interface NormalisedPosition { id: string; capacity: number; allowedPostures: PostureValue[]; allowedDirections: FacingDirection[] }
 
 /** Links every decision change directly to its state mutation method. */
@@ -129,6 +131,7 @@ const POSTURES = new Set(Object.values(Posture));
 const ACTIVITIES = new Set(Object.values(Activity));
 const EMOTIONAL_STATES = new Set(Object.values(EmotionalState));
 const FACING_DIRECTIONS = new Set<FacingDirection>(["front", "left", "right"]);
+export const DECISION_HISTORY_LIMIT = 30;
 
 /**
  * A character's immediate emotional state. Add new fields here and in
@@ -197,11 +200,20 @@ export class SimulationState {
     };
   }
 
+  /** Restore a complete snapshot without replaying the transitions that originally produced it. */
+  static fromSnapshot({ scene, snapshot, memoryLimit = DEFAULT_SIMULATION_TUNING.memoryLimitPerCharacter }: SimulationStateRestoreOptions): SimulationState {
+    const restored = validatedSnapshot(scene, snapshot, memoryLimit);
+    const state = new SimulationState({ scene, characterIds: Object.keys(restored.characters), memoryLimit });
+    state.#state = restored;
+    return state;
+  }
+
   snapshot(): SimulationSnapshot { return structuredClone(this.#state); }
 
   recordDecision(summary: string) {
     if (typeof summary !== "string" || !summary.trim()) throw new TypeError("A decision history entry needs a non-empty summary.");
     this.#state.decisionHistory.push(summary.trim());
+    this.#state.decisionHistory = this.#state.decisionHistory.slice(-DECISION_HISTORY_LIMIT);
     return this.snapshot();
   }
 
@@ -384,8 +396,127 @@ function newCharacterState(): CharacterState {
 }
 
 function normalisePosition(position: ScenePosition): NormalisedPosition { return { id: position.id, capacity: position.capacity ?? 1, allowedPostures: position.allowedPostures ?? Object.values(Posture), allowedDirections: position.allowedDirections ?? ["front", "left", "right"] }; }
+
+function validatedSnapshot(scene: Scene, input: unknown, memoryLimit: number): SimulationSnapshot {
+  if (!Number.isInteger(memoryLimit) || memoryLimit < 1) throw new RangeError("memoryLimit must be a positive integer.");
+  const source = record(input, "Simulation snapshot");
+  if (source.version !== 1) throw new RangeError(`Unsupported simulation snapshot version: ${String(source.version)}.`);
+  if (source.sceneId !== scene.id) throw new RangeError("Snapshot sceneId must match scene.id.");
+
+  const characterSource = record(source.characters, "snapshot.characters");
+  const characterIds = new Set(Object.keys(characterSource));
+  const positions = new Map(scene.positions.map((position) => [position.id, normalisePosition(position)]));
+  const occupied = new Set<string>();
+  const characters: Record<string, CharacterState> = {};
+
+  for (const [id, value] of Object.entries(characterSource)) {
+    if (!id) throw new TypeError("Every snapshot character needs a non-empty id.");
+    const item = record(value, `snapshot.characters.${id}`);
+    const positionId = item.positionId;
+    if (positionId !== null && (typeof positionId !== "string" || !positions.has(positionId))) throw new RangeError(`snapshot.characters.${id}.positionId is not in the scene.`);
+    if (typeof positionId === "string") {
+      if (occupied.has(positionId)) throw new RangeError(`Snapshot position ${positionId} is occupied by more than one character.`);
+      occupied.add(positionId);
+    }
+    const posture = item.posture as PostureValue;
+    assertPosture(posture);
+    const facing = item.facing as FacingDirection;
+    assertFacing(facing);
+    const position = typeof positionId === "string" ? positions.get(positionId)! : null;
+    if (position && !position.allowedPostures.includes(posture)) throw new RangeError(`${posture} is not allowed at position ${positionId}.`);
+    if (position && !position.allowedDirections.includes(facing)) throw new RangeError(`${facing} is not allowed at position ${positionId}.`);
+    const activity = item.activity as ActivityValue;
+    if (!ACTIVITIES.has(activity)) throw new RangeError(`Unknown activity: ${String(item.activity)}.`);
+    if (activity === Activity.SLEEPING && posture !== Posture.SITTING) throw new RangeError(`snapshot.characters.${id} can sleep only while sitting.`);
+
+    const moodSource = record(item.mood, `snapshot.characters.${id}.mood`);
+    const mood = {
+      valence: signed(moodSource.valence as number, `snapshot.characters.${id}.mood.valence`),
+      energy: unit(moodSource.energy as number, `snapshot.characters.${id}.mood.energy`),
+      socialNeed: unit(moodSource.socialNeed as number, `snapshot.characters.${id}.mood.socialNeed`),
+      emotionalState: emotion(moodSource.emotionalState as EmotionalState, `snapshot.characters.${id}.mood.emotionalState`),
+    };
+    if (!Array.isArray(item.memories)) throw new TypeError(`snapshot.characters.${id}.memories must be an array.`);
+    if (item.memories.length > memoryLimit) throw new RangeError(`snapshot.characters.${id}.memories exceeds the configured memory limit.`);
+    const memories = item.memories.map((value, index): Memory => {
+      const memory = record(value, `snapshot.characters.${id}.memories[${index}]`);
+      if (typeof memory.summary !== "string" || !memory.summary.trim()) throw new TypeError(`snapshot.characters.${id}.memories[${index}].summary is required.`);
+      return { summary: memory.summary, importance: unit(memory.importance as number, `snapshot.characters.${id}.memories[${index}].importance`) };
+    });
+    const relationshipSource = record(item.relationships, `snapshot.characters.${id}.relationships`);
+    const relationships: Record<string, RelationshipValue> = {};
+    for (const [toId, value] of Object.entries(relationshipSource)) {
+      if (!characterIds.has(toId) || toId === id) throw new RangeError(`snapshot.characters.${id}.relationships.${toId} must reference another snapshot character.`);
+      const relationship = record(value, `snapshot.characters.${id}.relationships.${toId}`);
+      relationships[toId] = {
+        affinity: signed(relationship.affinity as number, `snapshot.characters.${id}.relationships.${toId}.affinity`),
+        trust: signed(relationship.trust as number, `snapshot.characters.${id}.relationships.${toId}.trust`),
+      };
+    }
+    if (item.conversationId !== null && typeof item.conversationId !== "string") throw new TypeError(`snapshot.characters.${id}.conversationId must be a string or null.`);
+    characters[id] = { positionId, posture, facing, activity, mood, memories, relationships, conversationId: item.conversationId };
+  }
+
+  const conversationSource = record(source.conversations, "snapshot.conversations");
+  const conversations: Record<string, Conversation> = {};
+  for (const [id, value] of Object.entries(conversationSource)) {
+    const item = record(value, `snapshot.conversations.${id}`);
+    if (!id || item.id !== id) throw new RangeError(`snapshot.conversations.${id}.id must match its record key.`);
+    if (item.status !== ConversationStatus.ACTIVE && item.status !== ConversationStatus.CLOSING) throw new RangeError(`snapshot.conversations.${id}.status is invalid.`);
+    if (!Array.isArray(item.participants) || item.participants.length !== 2 || new Set(item.participants).size !== 2 || item.participants.some((participant) => typeof participant !== "string" || !characterIds.has(participant))) {
+      throw new RangeError(`snapshot.conversations.${id}.participants must contain exactly two known characters.`);
+    }
+    if (item.topic !== null && typeof item.topic !== "string") throw new TypeError(`snapshot.conversations.${id}.topic must be a string or null.`);
+    if (!Array.isArray(item.beats)) throw new TypeError(`snapshot.conversations.${id}.beats must be an array.`);
+    const participants = item.participants as string[];
+    const beats = item.beats.map((value, index): ConversationBeat => {
+      const beat = record(value, `snapshot.conversations.${id}.beats[${index}]`);
+      if (beat.type === "pause") return { type: "pause" };
+      if (beat.type !== "say" || typeof beat.speakerId !== "string" || !participants.includes(beat.speakerId) || typeof beat.text !== "string" || !beat.text.trim()) {
+        throw new TypeError(`snapshot.conversations.${id}.beats[${index}] is not a valid conversation beat.`);
+      }
+      return { type: "say", speakerId: beat.speakerId, text: beat.text };
+    });
+    if (item.status === ConversationStatus.ACTIVE) {
+      for (const participant of participants) {
+        if (characters[participant].conversationId !== id || characters[participant].activity !== Activity.TALKING) throw new RangeError(`Active conversation ${id} is inconsistent with participant ${participant}.`);
+      }
+      const arrangementError = conversationArrangementError(scene, characters, participants);
+      if (arrangementError) throw new RangeError(`Active conversation ${id}: ${arrangementError}`);
+    } else {
+      for (const participant of participants) {
+        if (characters[participant].conversationId === id) throw new RangeError(`Closing conversation ${id} must release participant ${participant}.`);
+      }
+    }
+    conversations[id] = { id, status: item.status, participants: [...participants], topic: item.topic, beats };
+  }
+  for (const [id, character] of Object.entries(characters)) {
+    if (character.conversationId !== null) {
+      const conversation = conversations[character.conversationId];
+      if (!conversation || conversation.status !== ConversationStatus.ACTIVE || !conversation.participants.includes(id)) throw new RangeError(`snapshot.characters.${id}.conversationId does not reference an active conversation containing that character.`);
+    } else if (character.activity === Activity.TALKING) {
+      throw new RangeError(`snapshot.characters.${id} cannot be talking without an active conversation.`);
+    }
+  }
+
+  if (!Array.isArray(source.decisionHistory) || source.decisionHistory.some((summary) => typeof summary !== "string" || !summary.trim())) throw new TypeError("snapshot.decisionHistory must contain non-empty strings.");
+  let event: WorldEvent | null = null;
+  if (source.event !== null) {
+    const eventSource = record(source.event, "snapshot.event");
+    if (typeof eventSource.type !== "string" || !eventSource.type.trim() || typeof eventSource.summary !== "string" || !eventSource.summary.trim() || !Array.isArray(eventSource.participants)) throw new TypeError("snapshot.event is invalid.");
+    if (eventSource.participants.some((participant) => typeof participant !== "string" || !characterIds.has(participant))) throw new RangeError("snapshot.event.participants must reference known characters.");
+    event = { type: eventSource.type, summary: eventSource.summary, participants: [...new Set(eventSource.participants as string[])] };
+  }
+  return { version: 1, sceneId: scene.id, decisionHistory: source.decisionHistory.slice(-DECISION_HISTORY_LIMIT), characters, conversations, event };
+}
+
+function record(value: unknown, label: string): Record<string, any> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new TypeError(`${label} must be an object.`);
+  return value as Record<string, any>;
+}
+
 function assertPosture(posture: PostureValue): void { if (!POSTURES.has(posture)) throw new RangeError(`Unknown posture: ${posture}.`); }
 function assertFacing(facing: FacingDirection): void { if (!FACING_DIRECTIONS.has(facing)) throw new RangeError(`Unknown facing direction: ${facing}.`); }
 function unit(value: number, label: string): number { if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError(`${label} must be between 0 and 1.`); return value; }
 function signed(value: number, label: string): number { if (!Number.isFinite(value) || value < -1 || value > 1) throw new RangeError(`${label} must be between -1 and 1.`); return value; }
-function emotion(value: EmotionalState, label: string): EmotionalState { if (!EMOTIONAL_STATES.has(value)) throw new RangeError(`${label} must be happy, sad, angry, or neutral.`); return value; }
+function emotion(value: EmotionalState, label: string): EmotionalState { if (!EMOTIONAL_STATES.has(value)) throw new RangeError(`${label} must be happy, sad, angry, afraid, or neutral.`); return value; }

@@ -33,7 +33,10 @@
           <input id="world-dynamic" type="range" min="-1" max="1" step="0.1" value="0" aria-label="World dynamic from quiet at minus one to hectic at plus one">
           <span class="range-labels"><span>−1 Quiet / still</span><span>+1 Hectic / rapidly changing</span></span>
         </label>
-        <button id="simulate" class="simulate-control" type="button">Simulate next step</button>
+        <div class="simulation-controls">
+          <button id="simulate" type="button">Simulate next step</button>
+          <label class="auto-control"><input id="auto-simulate" type="checkbox"> Auto</label>
+        </div>
       </section>
       <p class="hint">The local server reads OPENAI_API_KEY from its environment. Tune outcomes with world tendency, dialogue style with pomposity, and pacing with world dynamic. Edit the current state before simulating to test another valid snapshot.</p>
       <section class="world-preview" aria-labelledby="world-preview-title">

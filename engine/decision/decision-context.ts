@@ -1,6 +1,8 @@
 import { WorldRules } from "./world-rules.js";
 import { ChangeType, Posture } from "../state/index.js";
 import type { CharacterProfile, ConversationPair, FacingDirection, PostureValue, Scene, SimulationSnapshot } from "../state/index.js";
+import { resolveSimulationTuning } from "./simulation-tuning.js";
+import type { SimulationTuning } from "./simulation-tuning.js";
 
 export interface DecisionPosition {
   id: string;
@@ -34,8 +36,8 @@ export const ACTION_CATALOG: Record<ChangeType, ActionDefinition> = {
   [ChangeType.SET_MOOD]: {
     type: ChangeType.SET_MOOD,
     description: "Update one or more immediate mood dimensions, including the concrete visible emotional state when circumstances warrant it.",
-    fields: { characterId: "character id", mood: "{ valence?: -1..1, energy?: 0..1, socialNeed?: 0..1, emotionalState?: happy | sad | angry | neutral }" },
-    constraints: ["Only happy, sad, angry, and neutral are valid emotional states.", "The model decides when events or social interactions justify an emotional-state change."],
+    fields: { characterId: "character id", mood: "{ valence?: -1..1, energy?: 0..1, socialNeed?: 0..1, emotionalState?: happy | sad | angry | afraid | neutral }" },
+    constraints: ["Only happy, sad, angry, afraid, and neutral are valid emotional states.", "The model decides when events or social interactions justify an emotional-state change."],
   },
   [ChangeType.UPDATE_RELATIONSHIP]: { type: ChangeType.UPDATE_RELATIONSHIP, description: "Update one character's directed relationship toward another.", fields: { fromId: "character id", toId: "different character id", relationship: "{ affinity?: -1..1, trust?: -1..1 }" } },
   [ChangeType.PLACE_CHARACTER]: {
@@ -81,6 +83,7 @@ export interface DecisionContext {
   scene: { id: string; positions: DecisionPosition[]; conversationPairs: ConversationPair[] };
   characters: CharacterProfile[];
   state: SimulationSnapshot;
+  tuning: SimulationTuning;
   rules: {
     allowedChanges: ChangeType[];
     constraints: string[];
@@ -89,7 +92,7 @@ export interface DecisionContext {
 }
 
 /** Packages model-relevant semantics while withholding renderer-only geometry. */
-export function buildDecisionContext({ scene, profiles, state }: { scene: Scene; profiles: CharacterProfile[]; state: SimulationSnapshot }): DecisionContext {
+export function buildDecisionContext({ scene, profiles, state, tuning = {} }: { scene: Scene; profiles: CharacterProfile[]; state: SimulationSnapshot; tuning?: Partial<SimulationTuning> }): DecisionContext {
   if (!scene?.id || !Array.isArray(scene.positions)) throw new TypeError("A scene definition is required.");
   if (!Array.isArray(profiles)) throw new TypeError("Character profiles are required.");
   const snapshot = structuredClone(state);
@@ -109,6 +112,7 @@ export function buildDecisionContext({ scene, profiles, state }: { scene: Scene;
     scene: { id: scene.id, positions, conversationPairs: structuredClone(scene.conversationPairs) },
     characters: structuredClone(profiles),
     state: snapshot,
+    tuning: resolveSimulationTuning(tuning),
     rules: {
       allowedChanges: Object.values(ChangeType),
       constraints: [
