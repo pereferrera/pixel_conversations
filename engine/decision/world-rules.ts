@@ -54,13 +54,14 @@ export class WorldRules {
         .filter((conversation) => conversation.status === ConversationStatus.ACTIVE)
         .map((conversation) => [conversation.id, { participants: conversation.participants }]),
     );
-    decision.changes.forEach((change: UntrustedChange, index: number) => this.#validateChange(change, index, speakers, conversations, projectedCharacters, errors));
+    const closingParticipants = new Set<string>();
+    decision.changes.forEach((change: UntrustedChange, index: number) => this.#validateChange(change, index, speakers, conversations, projectedCharacters, closingParticipants, errors));
     return errors;
   }
 
   assertValid(decision: any): void { const errors = this.validate(decision); if (errors.length) throw new WorldRuleViolation(errors); }
 
-  #validateChange(change: UntrustedChange, index: number, speakers: Set<string>, conversations: Map<string, ProjectedConversation>, projectedCharacters: Record<string, CharacterState>, errors: string[]): number | void {
+  #validateChange(change: UntrustedChange, index: number, speakers: Set<string>, conversations: Map<string, ProjectedConversation>, projectedCharacters: Record<string, CharacterState>, closingParticipants: Set<string>, errors: string[]): number | void {
     const prefix = `changes[${index}]`;
     if (!change || typeof change.type !== "string") return errors.push(`${prefix} needs a type.`);
     const character = (id: string, field = "characterId"): void => { if (!this.characterIds.has(id)) errors.push(`${prefix}.${field} is not a scene character.`); };
@@ -94,7 +95,8 @@ export class WorldRules {
         character(change.characterId);
         const projectedCharacter = projectedCharacters[change.characterId];
         const place = this.placeById.get(change.positionId);
-        if (projectedCharacter?.conversationId) errors.push(`${prefix} must end the character's conversation before moving them.`);
+        if (closingParticipants.has(change.characterId)) errors.push(`${prefix} cannot move a character whose conversation is closing in this decision.`);
+        else if (projectedCharacter?.conversationId) errors.push(`${prefix} must end the character's conversation before moving them.`);
         else if (!place) errors.push(`${prefix}.positionId is not in the scene.`);
         else if (!(place.allowedPostures ?? Object.values(Posture)).includes(change.posture)) errors.push(`${prefix}.posture is not allowed at that place.`);
         else if (change.facing !== undefined && !(place.allowedDirections ?? ["front", "left", "right"]).includes(change.facing)) errors.push(`${prefix}.facing is not allowed at that place.`);
@@ -144,7 +146,10 @@ export class WorldRules {
         else {
           const participants = conversations.get(change.conversationId)!.participants;
           conversations.delete(change.conversationId);
-          participants.forEach((id) => Object.assign(projectedCharacters[id], { conversationId: null, activity: Activity.IDLE }));
+          participants.forEach((id) => {
+            closingParticipants.add(id);
+            Object.assign(projectedCharacters[id], { conversationId: null, activity: Activity.IDLE });
+          });
         }
         break;
       case ChangeType.PAUSE_CONVERSATION:

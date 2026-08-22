@@ -1,0 +1,828 @@
+{
+  "schemaVersion": 2,
+  "id": "city-rooftop",
+  "canvas": {
+    "width": 1152,
+    "height": 648,
+    "origin": "top-left",
+    "pixelsPerCm": 0.957446,
+    "characterScaleMode": "fixed-within-scene",
+    "characterDisplayScale": 1.875,
+    "elementDisplayScale": 1.5,
+    "standingSpriteCanvas": {
+      "width": 90,
+      "height": 240,
+      "baselineY": 208
+    },
+    "depthSort": "ascending-depthBaselineY",
+    "perspective": "zelda-style-fake-top-down-three-quarter",
+    "uprightScreenAxis": "vertical",
+    "mainEdgeAxes": [
+      "horizontal",
+      "vertical"
+    ],
+    "trueProjection": false,
+    "backgroundLogicalGrid": {
+      "width": 576,
+      "height": 324,
+      "displayScale": 2
+    }
+  },
+  "assets": {
+    "background": "../../assets/scenes/city-rooftop/background.png",
+    "example": "../../assets/scenes/city-rooftop/example.png"
+  },
+  "standingArea": {
+    "anchor": "character-foot-baseline",
+    "polygons": [
+      [
+        [
+          90,
+          350
+        ],
+        [
+          1062,
+          350
+        ],
+        [
+          1062,
+          590
+        ],
+        [
+          90,
+          590
+        ]
+      ]
+    ]
+  },
+  "elementPlacementAreas": [
+    {
+      "id": "open-floor",
+      "allowedElementTypes": [
+        "rooftop-chair",
+        "rooftop-bench"
+      ],
+      "polygon": [
+        [
+          100,
+          390
+        ],
+        [
+          1052,
+          390
+        ],
+        [
+          1052,
+          570
+        ],
+        [
+          100,
+          570
+        ]
+      ]
+    }
+  ],
+  "elementTypes": {
+    "rooftop-chair": {
+      "asset": "../../assets/scenes/city-rooftop/elements/rooftop-chair.png",
+      "canvas": {
+        "width": 96,
+        "height": 96
+      },
+      "placementAnchor": {
+        "x": 48,
+        "y": 96
+      },
+      "depthBaselineY": 87,
+      "footprint": [
+        [
+          -36,
+          -27
+        ],
+        [
+          36,
+          -27
+        ],
+        [
+          42,
+          0
+        ],
+        [
+          -42,
+          0
+        ]
+      ],
+      "geometry": {
+        "mainEdges": "screen-orthogonal",
+        "depthMethod": "stepped-offsets-shading-foreshortening"
+      },
+      "seatCapacity": 1,
+      "seats": [
+        {
+          "id": "seat",
+          "seatIndex": 0,
+          "contactAnchor": {
+            "x": 48,
+            "y": 46
+          },
+          "allowedOccupantDirections": [
+            "left",
+            "right"
+          ],
+          "clearance": {
+            "x": 14,
+            "y": 8,
+            "width": 68,
+            "height": 82
+          }
+        }
+      ]
+    },
+    "rooftop-bench": {
+      "asset": "../../assets/scenes/city-rooftop/elements/rooftop-bench.png",
+      "canvas": {
+        "width": 192,
+        "height": 96
+      },
+      "placementAnchor": {
+        "x": 96,
+        "y": 96
+      },
+      "depthBaselineY": 87,
+      "footprint": [
+        [
+          -81,
+          -27
+        ],
+        [
+          81,
+          -27
+        ],
+        [
+          90,
+          0
+        ],
+        [
+          -90,
+          0
+        ]
+      ],
+      "geometry": {
+        "mainEdges": "screen-orthogonal",
+        "depthMethod": "stepped-offsets-shading-foreshortening"
+      },
+      "seatCapacity": 2,
+      "seats": [
+        {
+          "id": "left-seat",
+          "seatIndex": 0,
+          "contactAnchor": {
+            "x": 63,
+            "y": 48
+          },
+          "allowedOccupantDirections": [
+            "left",
+            "right"
+          ],
+          "clearance": {
+            "x": 18,
+            "y": 8,
+            "width": 72,
+            "height": 82
+          }
+        },
+        {
+          "id": "right-seat",
+          "seatIndex": 1,
+          "contactAnchor": {
+            "x": 129,
+            "y": 48
+          },
+          "allowedOccupantDirections": [
+            "left",
+            "right"
+          ],
+          "clearance": {
+            "x": 102,
+            "y": 8,
+            "width": 72,
+            "height": 82
+          }
+        }
+      ]
+    }
+  },
+  "positions": [
+    {
+      "id": "back-left",
+      "label": "back left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 140,
+          "y": 390
+        }
+      }
+    },
+    {
+      "id": "back-mid-left",
+      "label": "back mid left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 280,
+          "y": 405
+        }
+      }
+    },
+    {
+      "id": "back-center-left",
+      "label": "back center left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 420,
+          "y": 400
+        }
+      }
+    },
+    {
+      "id": "back-center",
+      "label": "back center",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 560,
+          "y": 410
+        }
+      }
+    },
+    {
+      "id": "back-center-right",
+      "label": "back center right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 700,
+          "y": 400
+        }
+      }
+    },
+    {
+      "id": "back-mid-right",
+      "label": "back mid right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 840,
+          "y": 405
+        }
+      }
+    },
+    {
+      "id": "back-right",
+      "label": "back right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 980,
+          "y": 390
+        }
+      }
+    },
+    {
+      "id": "middle-left",
+      "label": "middle left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 190,
+          "y": 485
+        }
+      }
+    },
+    {
+      "id": "middle-center-left",
+      "label": "middle center left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 390,
+          "y": 500
+        }
+      }
+    },
+    {
+      "id": "middle-center",
+      "label": "middle center",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 590,
+          "y": 505
+        }
+      }
+    },
+    {
+      "id": "middle-center-right",
+      "label": "middle center right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 790,
+          "y": 500
+        }
+      }
+    },
+    {
+      "id": "middle-right",
+      "label": "middle right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 990,
+          "y": 485
+        }
+      }
+    },
+    {
+      "id": "front-left",
+      "label": "front left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 130,
+          "y": 570
+        }
+      }
+    },
+    {
+      "id": "front-center-left",
+      "label": "front center left",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 390,
+          "y": 580
+        }
+      }
+    },
+    {
+      "id": "front-center",
+      "label": "front center",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 650,
+          "y": 585
+        }
+      }
+    },
+    {
+      "id": "front-center-right",
+      "label": "front center right",
+      "kind": "standing",
+      "allowedPostures": [
+        "standing"
+      ],
+      "allowedDirections": [
+        "front",
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "standing",
+        "baseline": {
+          "x": 900,
+          "y": 580
+        }
+      }
+    },
+    {
+      "id": "bench-1/left-seat",
+      "label": "left bench seat",
+      "kind": "seat",
+      "allowedPostures": [
+        "sitting"
+      ],
+      "allowedDirections": [
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "seat",
+        "elementInstanceId": "bench-1",
+        "seatId": "left-seat"
+      }
+    },
+    {
+      "id": "bench-1/right-seat",
+      "label": "right bench seat",
+      "kind": "seat",
+      "allowedPostures": [
+        "sitting"
+      ],
+      "allowedDirections": [
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "seat",
+        "elementInstanceId": "bench-1",
+        "seatId": "right-seat"
+      }
+    },
+    {
+      "id": "chair-1/seat",
+      "label": "left chair seat",
+      "kind": "seat",
+      "allowedPostures": [
+        "sitting"
+      ],
+      "allowedDirections": [
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "seat",
+        "elementInstanceId": "chair-1",
+        "seatId": "seat"
+      }
+    },
+    {
+      "id": "chair-2/seat",
+      "label": "right chair seat",
+      "kind": "seat",
+      "allowedPostures": [
+        "sitting"
+      ],
+      "allowedDirections": [
+        "left",
+        "right"
+      ],
+      "renderer": {
+        "kind": "seat",
+        "elementInstanceId": "chair-2",
+        "seatId": "seat"
+      }
+    }
+  ],
+  "conversationPairs": [
+    {
+      "positions": [
+        "back-left",
+        "back-mid-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "back-mid-left",
+        "back-center-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "back-center-left",
+        "back-center"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "back-center",
+        "back-center-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "back-center-right",
+        "back-mid-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "back-mid-right",
+        "back-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "middle-left",
+        "middle-center-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "middle-center-left",
+        "middle-center"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "middle-center",
+        "middle-center-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "middle-center-right",
+        "middle-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "front-left",
+        "front-center-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "front-center-left",
+        "front-center"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "front-center",
+        "front-center-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "bench-1/left-seat",
+        "bench-1/right-seat"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "bench-1/left-seat",
+        "middle-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "bench-1/right-seat",
+        "middle-left"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "chair-1/seat",
+        "middle-center-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    },
+    {
+      "positions": [
+        "chair-2/seat",
+        "middle-right"
+      ],
+      "facings": [
+        "right",
+        "left"
+      ]
+    }
+  ],
+  "capacityGuidance": {
+    "comfortableCharacterCount": 5,
+    "busyCharacterCount": 10,
+    "comfortableBaselineSpacingPx": 180,
+    "busyBaselineSpacingPx": 90
+  },
+  "example": {
+    "characterSourcePolicy": "production-sprites",
+    "instances": [
+      {
+        "id": "bench-1",
+        "kind": "element",
+        "type": "rooftop-bench",
+        "anchor": {
+          "x": 270,
+          "y": 500
+        },
+        "depthBaselineY": 494
+      },
+      {
+        "id": "chair-1",
+        "kind": "element",
+        "type": "rooftop-chair",
+        "anchor": {
+          "x": 760,
+          "y": 510
+        },
+        "depthBaselineY": 504
+      },
+      {
+        "id": "chair-2",
+        "kind": "element",
+        "type": "rooftop-chair",
+        "anchor": {
+          "x": 930,
+          "y": 500
+        },
+        "depthBaselineY": 494
+      }
+    ]
+  }
+}

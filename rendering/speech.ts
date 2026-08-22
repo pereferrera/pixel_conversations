@@ -78,7 +78,5 @@ export function wrapText(context: CanvasRenderingContext2D, text: string, width:
 }
 
 function profileName(profiles: CharacterProfile[], characterId: string): string {
-  const identity = profiles.find(({ id }) => id === characterId)?.identity;
-  if (identity && typeof identity === "object" && "name" in identity && typeof identity.name === "string") return identity.name;
-  return characterId;
+  return profiles.find(({ id }) => id === characterId)?.name ?? characterId;
 }

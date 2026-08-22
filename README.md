@@ -257,13 +257,9 @@ UI code consumes this API and does not contain canvas or placement rules.
 
 Contains all character definitions.
 
-Each character includes:
-
-- sprite assets
-- profile
-- personality
-- default behavior
-- metadata
+Each character profile contains a stable id and display name plus two editable
+text fields: personality and background. Sprite assets live separately under
+`assets/characters`.
 
 No runtime logic should live here.
 

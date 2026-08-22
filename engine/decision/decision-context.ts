@@ -63,7 +63,7 @@ export const ACTION_CATALOG: Record<ChangeType, ActionDefinition> = {
     type: ChangeType.END_CONVERSATION,
     description: "Close an active conversation and release its participants.",
     fields: { conversationId: "active conversation id" },
-    constraints: ["This is the only action that ends a conversation.", "Do not use addEvent to end one."],
+    constraints: ["This is the only action that ends a conversation.", "Do not use addEvent to end one.", "Do not move either participant in the same decision; their closing beat remains visible for that frame."],
   },
   [ChangeType.PAUSE_CONVERSATION]: {
     type: ChangeType.PAUSE_CONVERSATION,
@@ -124,6 +124,7 @@ export function buildDecisionContext({ scene, profiles, state, tuning = {} }: { 
         "Posture is only standing or sitting. Sleeping is an activity and is allowed only while sitting.",
         "Only startConversation creates conversations, only say records exact spoken words, and only endConversation closes conversations.",
         "endConversation marks a conversation as closing so its final speech remains visible. Closing conversations accept no more beats and are deleted automatically before the next simulation step.",
+        "A decision that ends a conversation cannot also move either participant. Wait until the next decision to move them so the closing beat renders at the positions where it occurred.",
         "pauseConversation represents one active-conversation beat with no speech.",
         "addEvent never represents dialogue or conversation lifecycle.",
         "At most one event may be active. It describes a meaningful non-dialogue occurrence for one rendered frame and expires before the next simulation step.",

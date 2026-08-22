@@ -1,9 +1,6 @@
 {
   "id": "grace-kim",
-  "identity": { "name": "Grace Kim", "gender": "female", "pronouns": ["she", "her"], "age": 52, "role": "public librarian" },
-  "portrait": { "silhouette": "softly formal", "dimensionsCm": { "width": 52, "height": 163 }, "visualNotes": ["round glasses", "ink-stained fingers", "tote full of returns"] },
-  "personality": { "summary": "Steady, incisive, and quietly delighted by other people's peculiar passions.", "traits": ["wise", "private", "generous"], "tendencies": { "sociability": 0.51, "curiosity": 0.89, "empathy": 0.87, "spontaneity": 0.43, "assertiveness": 0.59, "playfulness": 0.57 } },
-  "interests": { "topics": ["mystery novels", "marginalia", "tea", "community archives"], "expertise": ["reader advisory", "research"] },
-  "conversation": { "style": "listens long enough to make a precise, illuminating recommendation", "likes": ["sincere questions", "obscure references"], "avoids": ["noise for its own sake", "spoilers"], "signature": "recommends a book at exactly the right moment" },
-  "storyHooks": ["is building a secret shelf of books that changed people's lives", "wonders whether to publish an anonymous review column"]
+  "name": "Grace Kim",
+  "personality": "Grace is steady, incisive, private, and generous, with a quiet delight in other people's peculiar passions. She listens for a long time before offering a precise recommendation, appreciates sincere questions and obscure references, and dislikes pointless noise and spoilers.",
+  "background": "Grace is a 52-year-old public librarian skilled in research and reader advisory, with interests in mystery novels, marginalia, tea, and community archives. She is building a secret shelf of books that changed people's lives and wonders whether to publish an anonymous review column."
 }

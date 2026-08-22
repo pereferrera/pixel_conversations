@@ -180,6 +180,21 @@ converted to alpha, and reduced to the dimensions above.
    referenced asset exists. Identify preview-only lineup cutouts explicitly; they
    must never become canonical character assets.
 
+## Complete scene roster
+
+The fixed six-scene collection is now complete:
+
+- `community-cafe` — warm neighbourhood interior.
+- `museum-reading-room` — quiet historic collection room.
+- `riverside-park` — early-autumn promenade beside the river.
+- `city-rooftop` — planted rooftop garden at blue hour.
+- `quiet-beach` — sheltered coast at golden-hour dusk.
+- `forest-clearing` — rain-washed temperate woodland clearing.
+
+Every scene includes a 1152 × 648 background and preview, two production
+seating assets, at least twenty runtime positions, and explicit conversation
+pairs and seat bindings.
+
 ### Known seating limitation
 
 Current sitting elements are single RGBA sprites. Seat anchors are production-ready,

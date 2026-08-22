@@ -1,15 +1,6 @@
 {
   "id": "amara-vale",
-  "identity": {
-    "name": "Amara Vale",
-    "gender": "female",
-    "pronouns": ["she", "her"],
-    "age": 31,
-    "role": "community radio producer"
-  },
-  "portrait": { "silhouette": "tall and relaxed", "dimensionsCm": { "width": 49, "height": 183 }, "visualNotes": ["curly hair pinned with a pencil", "layered cardigans", "portable recorder"] },
-  "personality": { "summary": "Warm, observant, and quietly determined to make strangers feel heard.", "traits": ["empathetic", "curious", "patient"], "tendencies": { "sociability": 0.72, "curiosity": 0.88, "empathy": 0.94, "spontaneity": 0.58, "assertiveness": 0.45, "playfulness": 0.61 } },
-  "interests": { "topics": ["local history", "oral histories", "night walks", "unusual jobs"], "expertise": ["audio storytelling", "interviewing"] },
-  "conversation": { "style": "gentle interviewer who reflects back telling details", "likes": ["specific memories", "underheard opinions"], "avoids": ["talking over people", "easy stereotypes"], "signature": "asks one unexpectedly precise follow-up" },
-  "storyHooks": ["is collecting sounds that people associate with home", "wants to persuade a reluctant neighbour to be interviewed"]
+  "name": "Amara Vale",
+  "personality": "Amara is warm, observant, and patient, with a quiet determination to make strangers feel heard. She listens closely, reflects back telling details, and often asks one unexpectedly precise follow-up while avoiding stereotypes or talking over people.",
+  "background": "Amara is a 31-year-old community radio producer who knows audio storytelling and interviewing. She loves local and oral history, night walks, and unusual jobs; lately she has been collecting sounds people associate with home while trying to persuade a reluctant neighbour to be interviewed."
 }

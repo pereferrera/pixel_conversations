@@ -106,20 +106,20 @@ test("debug server never serves dotenv files or other dotfiles", async () => {
   }
 });
 
-test("example world uses the real community cafe runtime positions", async () => {
-  const scene = JSON.parse(await readFile(new URL("../scenes/community-cafe/scene.json", import.meta.url)));
+test("example config exposes all six scenes and ten production characters", async () => {
   const example = JSON.parse(await readFile(new URL("./example-world.json", import.meta.url)));
-  assert.equal(example.scene.id, scene.id);
-  assert.deepEqual(example.scene.positions, scene.positions);
-  assert.equal(example.state.sceneId, scene.id);
-  assert.equal(example.profiles.find(({ id }) => id === "felix-adebayo").assetStatus.kind, "production");
-  assert.equal(example.profiles.find(({ id }) => id === "grace-kim").assetStatus.kind, "production");
-  assert.equal(example.rendering.sceneDefinition, "/scenes/community-cafe/scene.json");
-  assert.match(example.rendering.characterManifests["grace-kim"], /grace-kim\/manifest\.json$/);
+  assert.deepEqual(example.scenes.map(({ id }) => id), ["community-cafe", "museum-reading-room", "riverside-park", "city-rooftop", "quiet-beach", "forest-clearing"]);
+  assert.equal(example.characters.length, 10);
+  for (const character of example.characters) {
+    assert.match(character.profile, new RegExp(`/characters/${character.id}\\.json$`));
+    assert.match(character.manifest, new RegExp(`/assets/characters/${character.id}/manifest\\.json$`));
+    const manifest = JSON.parse(await readFile(new URL(`../assets/characters/${character.id}/manifest.json`, import.meta.url)));
+    assert.deepEqual(manifest.logicalCanvas, { width: 48, height: 128 });
+  }
 });
 
 test("every scene provides at least twenty standing and seated runtime positions", async () => {
-  for (const path of ["../scenes/community-cafe/scene.json", "../scenes/museum-reading-room/scene.json"]) {
+  for (const path of ["../scenes/community-cafe/scene.json", "../scenes/museum-reading-room/scene.json", "../scenes/riverside-park/scene.json", "../scenes/city-rooftop/scene.json", "../scenes/quiet-beach/scene.json", "../scenes/forest-clearing/scene.json"]) {
     const scene = JSON.parse(await readFile(new URL(path, import.meta.url)));
     assert.ok(scene.positions.length >= 20, `${scene.id} has only ${scene.positions.length} positions`);
     assert.ok(scene.positions.some(({ kind }) => kind === "standing"), `${scene.id} has no standing positions`);

@@ -1,9 +1,6 @@
 {
   "id": "benoit-keller",
-  "identity": { "name": "Benoît Keller", "gender": "male", "pronouns": ["he", "him"], "age": 46, "role": "watch repairer" },
-  "portrait": { "silhouette": "compact and deliberate", "dimensionsCm": { "width": 55, "height": 166 }, "visualNotes": ["rolled shirt sleeves", "magnifying loupe", "brass watch chain"] },
-  "personality": { "summary": "Exacting and dryly funny; kinder than his first impression suggests.", "traits": ["methodical", "reserved", "loyal"], "tendencies": { "sociability": 0.34, "curiosity": 0.7, "empathy": 0.62, "spontaneity": 0.19, "assertiveness": 0.55, "playfulness": 0.42 } },
-  "interests": { "topics": ["obsolete machines", "train timetables", "craftsmanship", "bad puns"], "expertise": ["horology", "mechanical repair"] },
-  "conversation": { "style": "measured and concise, with an occasional devastatingly deadpan aside", "likes": ["well-formed questions", "people who notice details"], "avoids": ["needless urgency", "vague promises"], "signature": "uses an object on hand as a metaphor" },
-  "storyHooks": ["is restoring a clock that stopped on an important day", "secretly needs help naming a stray cat"]
+  "name": "Benoît Keller",
+  "personality": "Benoît is exacting, methodical, and reserved, though kinder and more loyal than his first impression suggests. He speaks concisely, dislikes needless urgency and vague promises, and slips in dry jokes or metaphors drawn from whatever object is at hand.",
+  "background": "Benoît is a 46-year-old watch repairer with deep knowledge of horology, mechanical repair, obsolete machines, and train timetables. He is restoring a clock that stopped on an important day and, despite his serious manner, secretly needs help naming a stray cat."
 }

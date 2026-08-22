@@ -197,9 +197,7 @@ function drawActiveEvent(context: CanvasRenderingContext2D, state: SimulationSna
 }
 
 function profileName(profiles: CharacterProfile[], characterId: string): string {
-  const identity = profiles.find(({ id }) => id === characterId)?.identity;
-  if (identity && typeof identity === "object" && "name" in identity && typeof identity.name === "string") return identity.name;
-  return characterId;
+  return profiles.find(({ id }) => id === characterId)?.name ?? characterId;
 }
 function sideFacing(facing: FacingDirection): "left" | "right" { return facing === "right" ? "right" : "left"; }
 export function characterAssetKey(character: Pick<CharacterState, "activity" | "posture" | "facing">): string {

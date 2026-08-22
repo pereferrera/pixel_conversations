@@ -6,9 +6,9 @@ provider boundary visible: the exact request and prompts, the
 untouched response body, the parsed actions, and the resulting world state.
 Parsed OpenAI changes must use the state API's canonical `type` discriminator.
 Response status, OpenAI request id, and processing time appear beside the raw
-response when the API supplies them. An invalid action is logged with its index
-in the browser console and skipped; later actions are still attempted against
-the latest state.
+response when the API supplies them. Decisions are validated and applied as one
+unit through the engine's strict `applyDecision` path. If any action is invalid,
+the complete decision is rejected and the validation errors appear in status.
 
 Conversation actions are applied in returned order, so a decision may
 `startConversation` and then `say` the exact opening words. Later decisions
@@ -49,6 +49,11 @@ shell takes precedence over the file. `debug/.env` is covered by the repository'
 Open <http://localhost:4173/debug/>. Stop the server with Ctrl+C. The build is
 written to `.debug-build/`; it can be removed at any time.
 
+Choose any of the six bundled scenes, enable any combination of the ten production
+characters, and edit their personality or background text before simulating.
+Changing a scene or participant selection starts a fresh simulation with random
+placements; text edits are applied to the next provider request.
+
 Optionally change the model and click **Simulate next step**. Check **Auto** to
 start immediately and request each next step after the current step has been
 applied and rendered. Uncheck it to stop after the in-flight step; errors stop
@@ -61,27 +66,21 @@ and is intended for local debugging, not deployment.
 If `OPENAI_API_KEY` is absent from both the shell and `debug/.env`, the endpoint
 returns a configuration error.
 
-## World JSON format
+## Debug config format
 
-The bundled `example-world.json` loads automatically. Use **World JSON** to
-load another local file. A file contains:
+The bundled `example-world.json` loads automatically. Use **Debug config JSON**
+to load another local file. A file contains:
 
-- `scene`: the state API's scene definition, including concrete positions.
-- `profiles`: character profiles for every character in the state.
-- `rendering`: the full scene-definition URL and a character-id-to-manifest
-  URL map consumed by the standalone rendering library.
-- `state`: a complete `SimulationSnapshot`, including `decisionHistory`, the
-  complete list of applied decision summaries.
+- `scenes`: selectable scene ids, labels, and definition URLs.
+- `characters`: profile and sprite-manifest URLs for selectable characters.
+- `moodAssets`: shared emotional-state icon URLs.
 
-The bundled example uses the exact runtime positions from
-`scenes/community-cafe/scene.json`. Felix and Grace both have complete
-production sprite manifests and can be placed standing or sitting. Seated
-characters may use the sleeping activity and its dedicated sprite.
-
-On each page reload, the bundled example keeps Felix and Grace but initializes
-them at distinct random scene positions. Posture and facing are selected only
+The bundled example offers all six fixed scenes and the complete ten-character
+roster. Every character has standing, sitting, and seated-sleeping sprite
+manifests. On each page reload, selected characters are
+initialized at distinct random scene positions. Posture and facing are selected only
 from each position's declared affordances. This uses the reusable engine helper
-`placeCharactersRandomly`; uploaded world files retain their supplied state.
+`placeCharactersRandomly`.
 
 Hover a rendered character to inspect their concrete emotional state plus
 valence, energy, and social need. The debugger uses the renderer's reusable
@@ -101,8 +100,8 @@ conversations. All three tuning values are visible in the exact provider prompt.
 The app delegates all asset loading, placement, depth ordering, speech bubbles,
 canvas work, and PNG encoding to `rendering/render-world.ts`.
 
-The debugger retains a live `SimulationState` between steps. Loading a world or
-editing the state textarea uses the engine's reusable snapshot codec, which
+The debugger retains a live `SimulationState` between steps. Editing the state
+textarea uses the engine's reusable snapshot codec, which
 validates and defensively copies complete state without replaying the mutations
 that originally produced it. Unchanged textarea content therefore requires no
 reconstruction; valid manual edits become the input to the next step.

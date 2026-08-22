@@ -112,6 +112,10 @@ decision that added it, then expires automatically before the next decision.
 The model may add it alongside other actions when the occurrence is important
 to understanding the world.
 
+A decision that ends a conversation cannot also move either participant. The
+closing conversation and its final beat remain visible for the resulting frame,
+so movement must wait until the next decision.
+
 Add a new action in three places: `WorldRules` validation, `applyDecision`, and
 the `ACTION_CATALOG` supplied by `buildDecisionContext`. This keeps provider
 implementations interchangeable while the simulation—not the model—owns its

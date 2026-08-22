@@ -20,8 +20,8 @@ const scene = { id: "cafe", positions: [
   { positions: ["chair", "counter"] as [string, string], facings: ["right", "left"] as ["right", "left"] },
 ] };
 const profiles = [
-  { id: "felix-adebayo", identity: { name: "Felix" } },
-  { id: "grace-kim", identity: { name: "Grace" } },
+  { id: "felix-adebayo", name: "Felix", personality: "Quiet and thoughtful.", background: "A museum guard who enjoys astronomy." },
+  { id: "grace-kim", name: "Grace", personality: "Warm and incisive.", background: "A public librarian who enjoys mysteries." },
 ];
 
 function setup() {
@@ -147,6 +147,18 @@ test("endConversation preserves a closing conversation until the next iteration"
   assert.equal(snapshot.characters["grace-kim"].conversationId, null);
 });
 
+test("a character cannot move in the decision that closes their conversation", () => {
+  const state = setup();
+  const rules = new WorldRules({ scene, state: state.snapshot() });
+  assert.throws(() => rules.assertValid({
+    summary: "Felix leaves while the goodbye is still visible.",
+    changes: [
+      { type: ChangeType.END_CONVERSATION, conversationId: "stars" },
+      { type: ChangeType.PLACE_CHARACTER, characterId: "felix-adebayo", positionId: "counter", posture: Posture.STANDING },
+    ],
+  }), /cannot move a character whose conversation is closing in this decision/);
+});
+
 test("director removes closing conversations before asking for the next decision", async () => {
   const state = setup();
   state.addConversationTurn("stars", { speakerId: "felix-adebayo", text: "See you later." });
@@ -208,11 +220,14 @@ test("decision prompt requires changes and appends recent world summaries", () =
   assert.match(prompt, /start a conversation in about 60%/);
   assert.match(prompt, /speech in about 90% of active-conversation steps/);
   assert.match(prompt, /Choose conversational participation primarily from each participant's full profile/);
+  assert.match(prompt, /STRICT CHARACTER KNOWLEDGE BOUNDARY/);
+  assert.match(prompt, /Empty memories at the beginning mean they know nothing personal/);
   assert.match(prompt, /Do not alternate speakers mechanically/);
   assert.match(prompt, /"type":"pauseConversation"/);
   assert.match(prompt, /Memory is rare/);
   assert.match(prompt, /startConversation creates it, say records exact spoken words, and endConversation marks it closing/);
   assert.match(prompt, /deleted automatically before the next simulation step/);
+  assert.match(prompt, /do not move either participant in the same decision/);
   assert.match(prompt, /At most one event may be added per step/);
   assert.match(prompt, /expires before the next simulation step/);
   assert.match(prompt, /Physical connection is mandatory before speech/);

@@ -13,7 +13,8 @@
         <span id="status" role="status">Loading example…</span>
       </header>
       <section class="controls" aria-label="Debugger controls">
-        <label class="file-control">World JSON <input id="world-file" type="file" accept=".json,application/json"></label>
+        <label class="file-control">Debug config JSON <input id="world-file" type="file" accept=".json,application/json"></label>
+        <label class="scene-control">Scene <select id="scene-select" aria-label="Scene"></select></label>
         <label class="model-control">Model <input id="model" value="gpt-5.6-luna"></label>
         <label class="tendency-control world-tendency-control">
           <span>World tendency <output id="world-tendency-value" for="world-tendency">0.0</output></span>
@@ -38,7 +39,11 @@
           <label class="auto-control"><input id="auto-simulate" type="checkbox"> Auto</label>
         </div>
       </section>
-      <p class="hint">The local server reads OPENAI_API_KEY from its environment. Tune outcomes with world tendency, dialogue style with pomposity, and pacing with world dynamic. Edit the current state before simulating to test another valid snapshot.</p>
+      <section class="character-setup" aria-labelledby="character-setup-title">
+        <div class="panel-title"><h2 id="character-setup-title">Characters</h2><small>Enable participants and override the text sent to the model</small></div>
+        <div id="character-controls" class="character-controls"></div>
+      </section>
+      <p class="hint">The local server reads OPENAI_API_KEY from its environment. Scene or participant changes start a fresh randomly placed simulation. Personality and background edits apply on the next simulated step.</p>
       <section class="world-preview" aria-labelledby="world-preview-title">
         <div class="panel-title"><h2 id="world-preview-title">Rendered world</h2><small id="rendering-meta">Rendering…</small></div>
         <img id="world-image" alt="Rendered current world state">

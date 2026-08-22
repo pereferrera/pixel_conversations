@@ -1,9 +1,6 @@
 {
   "id": "celia-nwosu",
-  "identity": { "name": "Celia Nwosu", "gender": "female", "pronouns": ["she", "her"], "age": 24, "role": "botany graduate student" },
-  "portrait": { "silhouette": "quick-moving and bright", "dimensionsCm": { "width": 47, "height": 170 }, "visualNotes": ["oversized field jacket", "plant press", "muddy trainers"] },
-  "personality": { "summary": "Enthusiastic, earnest, and prone to connecting every subject back to a living system.", "traits": ["idealistic", "energetic", "sincere"], "tendencies": { "sociability": 0.76, "curiosity": 0.96, "empathy": 0.75, "spontaneity": 0.82, "assertiveness": 0.63, "playfulness": 0.78 } },
-  "interests": { "topics": ["mosses", "urban ecology", "foraging", "public gardens"], "expertise": ["plant identification", "seed saving"] },
-  "conversation": { "style": "fast, vivid, and contagious; happily changes course when delighted", "likes": ["half-formed ideas", "small wonders"], "avoids": ["cynicism posing as realism", "wastefulness"], "signature": "offers a surprising plant fact" },
-  "storyHooks": ["is trying to get permission for a rooftop pollinator garden", "has found an unfamiliar plant growing through pavement"]
+  "name": "Celia Nwosu",
+  "personality": "Celia is enthusiastic, idealistic, and sincere, with an energetic curiosity that connects almost every subject to a living system. She speaks quickly and vividly, delights in half-formed ideas and small wonders, and has little patience for cynicism or wastefulness.",
+  "background": "Celia is a 24-year-old botany graduate student skilled in plant identification and seed saving, with a particular love of mosses, urban ecology, foraging, and public gardens. She is seeking permission for a rooftop pollinator garden and has recently found an unfamiliar plant growing through pavement."
 }

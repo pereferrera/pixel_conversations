@@ -66,7 +66,12 @@ export interface ConversationPair {
   facings: [FacingDirection, FacingDirection];
 }
 export interface Scene { id: string; positions: ScenePosition[]; conversationPairs: ConversationPair[] }
-export interface CharacterProfile { id: string; [key: string]: unknown }
+export interface CharacterProfile {
+  id: string;
+  name: string;
+  personality: string;
+  background: string;
+}
 export interface SimulationStateOptions { scene: Scene; characterIds: string[]; memoryLimit?: number }
 
 export type SimulationChange =
