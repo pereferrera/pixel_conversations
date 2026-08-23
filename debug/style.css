@@ -7,14 +7,18 @@ h1 { margin: 4px 0 16px; font: 600 28px/1.2 system-ui, sans-serif; }
 .eyebrow { margin: 0; color: #8f9aaf; font-size: 12px; text-transform: uppercase; letter-spacing: .12em; }
 #status { color: #98a6be; padding-bottom: 18px; }
 #status.error { color: #ff8e8e; }
-.controls { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(180px, .8fr) minmax(180px, .8fr) minmax(220px, .8fr); grid-template-areas: "file scene model action" "tendency tendency pomposity dynamic"; align-items: end; gap: 18px 16px; padding: 16px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
+.controls { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); grid-template-areas: "file scene model action" "tendency pomposity humorousness dynamic" "directive directive directive directive"; align-items: end; gap: 18px 16px; padding: 16px; border: 1px solid #303642; border-radius: 8px; background: #191d25; }
 .controls label { display: grid; gap: 6px; color: #aeb6c6; font-size: 12px; }
 .file-control { grid-area: file; }
 .scene-control { grid-area: scene; }
 .model-control { grid-area: model; }
 .world-tendency-control { grid-area: tendency; }
 .pomposity-control { grid-area: pomposity; }
+.humorousness-control { grid-area: humorousness; }
 .dynamic-control { grid-area: dynamic; }
+.requested-development-control { grid-area: directive; grid-template-columns: minmax(180px, .7fr) minmax(260px, 1fr); align-items: center; }
+.requested-development-control > span, .requested-development-control > small { grid-column: 1 / -1; }
+.requested-development-control small { color: #8f9aaf; font: 12px/1.4 system-ui, sans-serif; }
 .simulation-controls { grid-area: action; display: flex; align-items: center; gap: 12px; }
 .simulation-controls button { width: 220px; }
 .controls .auto-control { display: flex; grid-template-columns: none; align-items: center; gap: 7px; color: #e8eaf0; cursor: pointer; font-size: 13px; }
@@ -58,7 +62,8 @@ textarea { width: 100%; min-height: 300px; padding: 14px; resize: vertical; line
 .state-panel textarea { min-height: 650px; }
 textarea:focus, input:focus, select:focus { outline: 2px solid #6372e7; outline-offset: 1px; }
 @media (max-width: 850px) {
-  .controls { grid-template-columns: 1fr; grid-template-areas: "file" "scene" "model" "tendency" "pomposity" "dynamic" "action"; }
+  .controls { grid-template-columns: 1fr; grid-template-areas: "file" "scene" "model" "tendency" "pomposity" "humorousness" "dynamic" "directive" "action"; }
+  .requested-development-control { grid-template-columns: 1fr; }
   .character-controls { grid-template-columns: 1fr; }
   .simulation-controls button { flex: 1; width: auto; }
   .panels { grid-template-columns: 1fr; }

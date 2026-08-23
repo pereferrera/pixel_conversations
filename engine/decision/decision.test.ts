@@ -6,7 +6,7 @@ import { buildDecisionContext } from "./decision-context.js";
 import type { DecisionContext } from "./decision-context.js";
 import { OpenAIProvider } from "../provider/index.js";
 import { SimulationDirector } from "./simulation-director.js";
-import { decisionPrompt, pomposityInstruction, worldDynamicInstruction, worldTendencyInstruction } from "./ai.js";
+import { decisionPrompt, humorousnessInstruction, pomposityInstruction, requestedDevelopmentInstruction, worldDynamicInstruction, worldTendencyInstruction } from "./ai.js";
 import { applyDecision, DECISION_JSON_SCHEMA, WorldRuleViolation, WorldRules } from "./world-rules.js";
 import { dynamicPacing } from "./simulation-tuning.js";
 import { resolveSimulationTuning } from "./simulation-tuning.js";
@@ -264,6 +264,9 @@ test("simulation tuning rejects invalid ranges", () => {
   assert.throws(() => resolveSimulationTuning({ worldTendency: -1.01 }), /worldTendency must be between -1 and 1/);
   assert.throws(() => resolveSimulationTuning({ worldTendency: 1.01 }), /worldTendency must be between -1 and 1/);
   assert.throws(() => resolveSimulationTuning({ pomposity: -1.01 }), /pomposity must be between -1 and 1/);
+  assert.throws(() => resolveSimulationTuning({ humorousness: 1.01 }), /humorousness must be between -1 and 1/);
+  assert.throws(() => resolveSimulationTuning({ requestedDevelopment: "" }), /requestedDevelopment/);
+  assert.throws(() => resolveSimulationTuning({ requestedDevelopment: "x".repeat(501) }), /requestedDevelopment/);
   assert.throws(() => resolveSimulationTuning({ worldDynamic: 1.01 }), /worldDynamic must be between -1 and 1/);
   assert.throws(() => resolveSimulationTuning({ decisionHistoryLimit: 0 }), /positive integer/);
   assert.throws(() => resolveSimulationTuning({ conversationTurnLikelihoodPercent: 101 }), /between 0 and 100/);
@@ -277,6 +280,26 @@ test("pomposity strongly favors ordinary speech by default and supports both ext
   assert.match(pomposityInstruction(0), /average everyday speech is neither unintelligent nor inarticulate/);
   assert.match(pomposityInstruction(1), /Shakespeare-like/);
   assert.match(pomposityInstruction(-1), /slang-heavy/);
+});
+
+test("humorousness spans philosophy-book dialogue through relentless sharp humor", () => {
+  assert.match(humorousnessInstruction(-1), /serious philosophy book/);
+  assert.match(humorousnessInstruction(-1), /entirely humorless/);
+  assert.match(humorousnessInstruction(0), /Do not force jokes/);
+  assert.match(humorousnessInstruction(0.4), /70% sharp humor/);
+  assert.match(humorousnessInstruction(1), /every spoken line a sharp, genuinely funny comedic beat/);
+  assert.match(humorousnessInstruction(1), /struggle to stop laughing/);
+  assert.match(decisionPrompt(decisionContext([], { humorousness: 1 })), /DIALOGUE HUMOROUSNESS \+1/);
+});
+
+test("a requested development is explicit, persistent in tone, and absent by default", () => {
+  assert.equal(requestedDevelopmentInstruction(null), "");
+  assert.doesNotMatch(decisionPrompt(decisionContext()), /ACTIVE USER-DIRECTED DEVELOPMENT/);
+  const prompt = decisionPrompt(decisionContext([], { requestedDevelopment: "Someone falls in love." }));
+  assert.match(prompt, /ACTIVE USER-DIRECTED DEVELOPMENT/);
+  assert.match(prompt, /requested development: Someone falls in love\./);
+  assert.match(prompt, /make it concretely happen now/);
+  assert.match(prompt, /progress its meaningful consequences instead of recreating/);
 });
 
 test("world dynamic interpolates pacing and preserves changes at the quiet endpoint", () => {

@@ -1,7 +1,9 @@
 export interface SimulationTuning {
   worldTendency: number;
   pomposity: number;
+  humorousness: number;
   worldDynamic: number;
+  requestedDevelopment: string | null;
   decisionHistoryLimit: number;
   typicalChangesMin: number;
   typicalChangesMax: number;
@@ -36,7 +38,9 @@ export interface DynamicPacing {
 export const DEFAULT_SIMULATION_TUNING: Readonly<SimulationTuning> = Object.freeze({
   worldTendency: 0,
   pomposity: 0,
+  humorousness: 0,
   worldDynamic: 0,
+  requestedDevelopment: null,
   decisionHistoryLimit: 20,
   typicalChangesMin: 2,
   typicalChangesMax: 4,
@@ -57,7 +61,11 @@ export function resolveSimulationTuning(overrides: Partial<SimulationTuning> = {
   const tuning = { ...DEFAULT_SIMULATION_TUNING, ...overrides };
   signed(tuning.worldTendency, "worldTendency");
   signed(tuning.pomposity, "pomposity");
+  signed(tuning.humorousness, "humorousness");
   signed(tuning.worldDynamic, "worldDynamic");
+  if (tuning.requestedDevelopment !== null && (typeof tuning.requestedDevelopment !== "string" || !tuning.requestedDevelopment.trim() || tuning.requestedDevelopment.length > 500)) {
+    throw new RangeError("requestedDevelopment must be null or a non-empty string no longer than 500 characters.");
+  }
   positiveInteger(tuning.decisionHistoryLimit, "decisionHistoryLimit");
   positiveInteger(tuning.typicalChangesMin, "typicalChangesMin");
   positiveInteger(tuning.typicalChangesMax, "typicalChangesMax");

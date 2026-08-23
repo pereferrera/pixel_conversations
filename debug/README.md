@@ -56,8 +56,12 @@ placements; text edits are applied to the next provider request.
 
 Optionally change the model and click **Simulate next step**. Check **Auto** to
 start immediately and request each next step after the current step has been
-applied and rendered. Uncheck it to stop after the in-flight step; errors stop
-auto mode as well. The browser sends the provider request to the same-origin
+applied and rendered. Auto mode keeps each frame's visible speech and event text
+on screen long enough to read at a fixed 250 words per minute. Provider latency
+counts toward that reading time; when a response arrives early, its application
+waits only for the unread remainder. Frames without visible prose add no delay.
+Manual simulation remains explicitly user-paced. Uncheck Auto to stop after the
+in-flight step; errors stop auto mode as well. The browser sends the provider request to the same-origin
 local endpoint at `/api/responses`.
 The local server adds `OPENAI_API_KEY` and forwards it to OpenAI, avoiding CORS
 and keeping the secret out of browser code. The server binds to loopback only
@@ -75,9 +79,9 @@ to load another local file. A file contains:
 - `characters`: profile and sprite-manifest URLs for selectable characters.
 - `moodAssets`: shared emotional-state icon URLs.
 
-The bundled example offers all six fixed scenes and the complete ten-character
-roster. Every character has standing, sitting, and seated-sleeping sprite
-manifests. On each page reload, selected characters are
+The bundled example offers all six fixed scenes and the four characters that
+currently have production assets. Each listed character has standing, sitting,
+and seated-sleeping sprite manifests. On each page reload, selected characters are
 initialized at distinct random scene positions. Posture and facing are selected only
 from each position's declared affordances. This uses the reusable engine helper
 `placeCharactersRandomly`.
@@ -92,11 +96,19 @@ developments, `0` for balanced outcomes, and `+1` for consistently peaceful and
 fortunate developments. The exact prompt is visible in the provider-request
 panel.
 
-Two additional `-1..1` sliders expose the engine's dialogue and pacing priors.
+Three additional `-1..1` sliders expose the engine's dialogue and pacing priors.
 `pomposity` ranges from slang-heavy/nonstandard speech through natural everyday
-conversation to Shakespeare-like rhetoric. `worldDynamic` ranges from quiet,
-still, minimally conversational scenes to hectic movement and rapidly changing
-conversations. All three tuning values are visible in the exact provider prompt.
+conversation to Shakespeare-like rhetoric. `humorousness` ranges from serious,
+philosophy-book reflection to relentless puns and sharp humorous lines.
+`worldDynamic` ranges from quiet, still, minimally conversational scenes to
+hectic movement and rapidly changing conversations. All four tuning values are
+visible in the exact provider prompt.
+
+**What should happen next?** sends a persistent `requestedDevelopment` with
+each provider context until the selection changes. The default **Let faith
+choose** sends no direction, and the exact active instruction remains visible
+in the provider-request panel.
+
 The app delegates all asset loading, placement, depth ordering, speech bubbles,
 canvas work, and PNG encoding to `rendering/render-world.ts`.
 

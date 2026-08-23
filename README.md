@@ -8,6 +8,12 @@ The experience is intentionally minimalistic and atmospheric. Rather than focusi
 
 Everything runs entirely in the browser.
 
+## Product app
+
+The observer-facing app lives in [`app/`](app/README.md). Run `npm run app`,
+then open <http://localhost:4173/>. Choose a scene and cast, optionally adapt
+the characters, enter the world, and use Play or Stop to control the simulation.
+
 ## State machine debugger
 
 A small browser app for stepping a JSON world through the configured AI

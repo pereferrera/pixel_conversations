@@ -11,13 +11,7 @@
     { "id": "felix-adebayo", "profile": "/characters/felix-adebayo.json", "manifest": "/assets/characters/felix-adebayo/manifest.json", "enabled": true },
     { "id": "grace-kim", "profile": "/characters/grace-kim.json", "manifest": "/assets/characters/grace-kim/manifest.json", "enabled": true },
     { "id": "celia-nwosu", "profile": "/characters/celia-nwosu.json", "manifest": "/assets/characters/celia-nwosu/manifest.json", "enabled": true },
-    { "id": "benoit-keller", "profile": "/characters/benoit-keller.json", "manifest": "/assets/characters/benoit-keller/manifest.json", "enabled": true },
-    { "id": "amara-vale", "profile": "/characters/amara-vale.json", "manifest": "/assets/characters/amara-vale/manifest.json", "enabled": false },
-    { "id": "daniel-ortiz", "profile": "/characters/daniel-ortiz.json", "manifest": "/assets/characters/daniel-ortiz/manifest.json", "enabled": false },
-    { "id": "elise-morrow", "profile": "/characters/elise-morrow.json", "manifest": "/assets/characters/elise-morrow/manifest.json", "enabled": false },
-    { "id": "hugo-martin", "profile": "/characters/hugo-martin.json", "manifest": "/assets/characters/hugo-martin/manifest.json", "enabled": false },
-    { "id": "ines-petrov", "profile": "/characters/ines-petrov.json", "manifest": "/assets/characters/ines-petrov/manifest.json", "enabled": false },
-    { "id": "jonas-reed", "profile": "/characters/jonas-reed.json", "manifest": "/assets/characters/jonas-reed/manifest.json", "enabled": false }
+    { "id": "benoit-keller", "profile": "/characters/benoit-keller.json", "manifest": "/assets/characters/benoit-keller/manifest.json", "enabled": true }
   ],
   "moodAssets": {
     "happy": "/assets/moods/happy.png",

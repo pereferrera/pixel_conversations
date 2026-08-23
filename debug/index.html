@@ -28,11 +28,23 @@
           <input id="pomposity" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Dialogue pomposity from slang at minus one to Shakespeare-like at plus one">
           <span class="range-labels"><span>−1 Slang / nonstandard</span><span>+1 Ornate / Shakespeare-like</span></span>
         </label>
+        <label class="tendency-control humorousness-control">
+          <span>Humorousness <output id="humorousness-value" for="humorousness">0.0</output></span>
+          <small>Controls whether dialogue sounds philosophical or relentlessly funny.</small>
+          <input id="humorousness" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Dialogue humorousness from philosophical at minus one to pun-filled at plus one">
+          <span class="range-labels"><span>−1 Philosophy book</span><span>+1 Puns / sharp humor</span></span>
+        </label>
         <label class="tendency-control dynamic-control">
           <span>World dynamic <output id="world-dynamic-value" for="world-dynamic">0.0</output></span>
           <small>Controls movement, interruptions, and conversation turnover.</small>
           <input id="world-dynamic" type="range" min="-1" max="1" step="0.1" value="0" aria-label="World dynamic from quiet at minus one to hectic at plus one">
           <span class="range-labels"><span>−1 Quiet / still</span><span>+1 Hectic / rapidly changing</span></span>
+        </label>
+        <label class="requested-development-control">
+          <span>What should happen next?</span>
+          <small>A persistent user direction, applied until the selection changes.</small>
+          <select id="requested-development" aria-label="Requested next development"></select>
+          <input id="custom-development" type="text" maxlength="500" placeholder="Describe what should happen next" aria-label="Custom requested development" hidden>
         </label>
         <div class="simulation-controls">
           <button id="simulate" type="button">Simulate next step</button>

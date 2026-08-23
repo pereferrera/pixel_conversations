@@ -1,0 +1,22 @@
+{
+  "scenes": [
+    { "id": "community-cafe", "label": "Community café", "definition": "/scenes/community-cafe/scene.json", "thumbnail": "/assets/scenes/community-cafe/example.png" },
+    { "id": "museum-reading-room", "label": "Museum reading room", "definition": "/scenes/museum-reading-room/scene.json", "thumbnail": "/assets/scenes/museum-reading-room/example.png" },
+    { "id": "riverside-park", "label": "Riverside park", "definition": "/scenes/riverside-park/scene.json", "thumbnail": "/assets/scenes/riverside-park/example.png" },
+    { "id": "city-rooftop", "label": "City rooftop", "definition": "/scenes/city-rooftop/scene.json", "thumbnail": "/assets/scenes/city-rooftop/example.png" },
+    { "id": "quiet-beach", "label": "Quiet beach", "definition": "/scenes/quiet-beach/scene.json", "thumbnail": "/assets/scenes/quiet-beach/example.png" },
+    { "id": "forest-clearing", "label": "Forest clearing", "definition": "/scenes/forest-clearing/scene.json", "thumbnail": "/assets/scenes/forest-clearing/example.png" }
+  ],
+  "characters": [
+    { "id": "felix-adebayo", "profile": "/characters/felix-adebayo.json", "manifest": "/assets/characters/felix-adebayo/manifest.json", "thumbnail": "/assets/characters/felix-adebayo/standing/front/neutral-idle.png" },
+    { "id": "grace-kim", "profile": "/characters/grace-kim.json", "manifest": "/assets/characters/grace-kim/manifest.json", "thumbnail": "/assets/characters/grace-kim/standing/front/neutral-idle.png" },
+    { "id": "celia-nwosu", "profile": "/characters/celia-nwosu.json", "manifest": "/assets/characters/celia-nwosu/manifest.json", "thumbnail": "/assets/characters/celia-nwosu/standing/front/neutral-idle.png" },
+    { "id": "benoit-keller", "profile": "/characters/benoit-keller.json", "manifest": "/assets/characters/benoit-keller/manifest.json", "thumbnail": "/assets/characters/benoit-keller/standing/front/neutral-idle.png" }
+  ],
+  "moodAssets": {
+    "happy": "/assets/moods/happy.png",
+    "sad": "/assets/moods/sad.png",
+    "angry": "/assets/moods/angry.png",
+    "afraid": "/assets/moods/afraid.png"
+  }
+}

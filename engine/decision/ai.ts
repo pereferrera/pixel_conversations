@@ -16,7 +16,9 @@ export function decisionPrompt(context: DecisionContext): string {
     "Decide the next small simulation step from the complete context below.",
     worldTendencyInstruction(tuning.worldTendency),
     pomposityInstruction(tuning.pomposity),
+    humorousnessInstruction(tuning.humorousness),
     worldDynamicInstruction(tuning.worldDynamic),
+    requestedDevelopmentInstruction(tuning.requestedDevelopment),
     `Only propose allowed changes. Usually make ${pacing.typicalChangesMin} to ${pacing.typicalChangesMax} meaningful changes. Zero changes are not allowed.`,
     "Use decisionHistory as a guide to avoid repeating the same patterns and stories. Before choosing the next step, compare it with the recent summaries and do not repeat or lightly paraphrase the same actions, conflicts, conversation cycles, events, hazards, or outcomes. Prefer a new consequence, a materially changed response, or progression to a different situation.",
     dynamicPriorityInstruction(tuning.worldDynamic),
@@ -48,7 +50,12 @@ export function decisionPrompt(context: DecisionContext): string {
     "Use only ids from the context.",
     "CONTEXT:", JSON.stringify(promptContext),
     "RECENT WORLD CHANGE SUMMARIES (oldest to newest):", JSON.stringify(recentHistory),
-  ].join("\n");
+  ].filter(Boolean).join("\n");
+}
+
+export function requestedDevelopmentInstruction(requestedDevelopment: string | null): string {
+  if (!requestedDevelopment) return "";
+  return `ACTIVE USER-DIRECTED DEVELOPMENT: Keep steering the world around this requested development: ${requestedDevelopment.trim()} If it has not happened yet, make it concretely happen now—do not merely discuss, propose, predict, postpone, or foreshadow it. If it already happened, progress its meaningful consequences instead of recreating or restating the same occurrence. Use only allowed changes and known ids, obey every world rule, and preserve coherent character causality.`;
 }
 
 export function worldTendencyInstruction(tendency: number): string {
@@ -68,6 +75,16 @@ export function pomposityInstruction(pomposity: number): string {
   const ornatePercent = Math.round((pomposity + 1) * 50);
   const everydayPercent = 100 - Math.abs(Math.round(pomposity * 100));
   return `DIALOGUE POMPOSITY ${value}: IMPORTANT—write dialogue that sounds spoken by real people, not literary narration. Use contractions, short or incomplete sentences, ordinary vocabulary, occasional hesitation, interruptions, direct replies, and naturally uneven turn lengths. Avoid poetic imagery, polished monologues, aphorisms, theatrical declarations, and characters constantly sounding profound unless their profile and the immediate moment specifically justify it. Match vocabulary and verbal fluency to each character's background, education, personality, and current emotion; average everyday speech is neither unintelligent nor inarticulate. Apply approximately ${ornatePercent}% of the path from slang-heavy speech to ornate speech, while retaining about ${everydayPercent}% everyday conversational naturalness.`;
+}
+
+export function humorousnessInstruction(humorousness: number): string {
+  const value = humorousness > 0 ? `+${humorousness}` : String(humorousness);
+  if (humorousness === 1) return "DIALOGUE HUMOROUSNESS +1: Make every spoken line a sharp, genuinely funny comedic beat. Favor concise wit, surprising punchlines, playful wordplay, and puns grounded in the immediate situation and each character's voice. The watcher should struggle to stop laughing, but dialogue must still respond coherently and advance the interaction.";
+  if (humorousness === -1) return "DIALOGUE HUMOROUSNESS -1: Make spoken dialogue sound like a serious philosophy book: contemplative, abstract, intellectually rigorous, and entirely humorless. Favor careful reflections on meaning, knowledge, ethics, existence, or the nature of the immediate situation. Do not use jokes, puns, punchlines, or comic relief.";
+  if (humorousness === 0) return "DIALOGUE HUMOROUSNESS 0: Keep humor and philosophical reflection natural to the characters and situation. Do not force jokes, puns, punchlines, or philosophical aphorisms into every line.";
+  const humorousPercent = Math.round((humorousness + 1) * 50);
+  const philosophicalPercent = 100 - humorousPercent;
+  return `DIALOGUE HUMOROUSNESS ${value}: Apply a dialogue-style prior of approximately ${humorousPercent}% sharp humor, playful wordplay, and situational puns versus ${philosophicalPercent}% serious, contemplative, philosophy-book reflection. Keep every line coherent, responsive, grounded in the immediate situation, and faithful to the speaker's identity.`;
 }
 
 export function worldDynamicInstruction(worldDynamic: number): string {

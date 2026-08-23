@@ -33,6 +33,13 @@ answers, ordinary vocabulary, hesitations, and uneven turns rather than poetic
 monologues. Vocabulary and fluency should fit character background without
 equating natural or simple speech with low intelligence.
 
+`humorousness` controls spoken style from serious, contemplative,
+philosophy-book dialogue at `-1` to dense puns, wordplay, punchlines, and sharp
+situational humor at `1`. At its neutral default, humor and reflection arise
+only when natural to the character and situation. Intermediate values blend
+the philosophical and humorous style priors while preserving coherent,
+responsive dialogue and character identity.
+
 `worldDynamic` controls pacing from exceptionally quiet and still at `-1` to
 intensely hectic at `1`. Quiet worlds favor staying put, listening, pauses, and
 subtle state changes; hectic worlds favor movement, interruptions, rapid
@@ -45,6 +52,14 @@ adding flavor text alone. At `+1`, steps target 4–8 changes, conversations tar
 instead of continued. At `-1`, steps target 1–2 changes, conversation starts
 fall to 10% of eligible steps, and silence/listening become substantially more
 likely. At `0`, the configured baseline pacing values are preserved.
+
+`requestedDevelopment` is a nullable, persistent user direction. When present,
+the prompt requires that development to happen concretely rather than merely
+being discussed or foreshadowed. Once it has happened, following decisions
+progress its consequences instead of recreating the same occurrence. The host
+keeps sending it until the observer changes the selection.
+`NEXT_DEVELOPMENT_PRESETS` exports the shared product/debug choices; custom
+requests may contain up to 500 characters.
 
 Speaker selection is personality-first. The model weighs complete profiles,
 conversation style, mood, social need, relationships, topic, recent speakers,

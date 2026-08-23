@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#171713">
+    <title>Pixel Conversations</title>
+    <link rel="stylesheet" href="./style.css">
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <p>Pixel Conversations</p>
+        <h1>A little world to watch</h1>
+      </header>
+
+      <section id="setup" class="setup" aria-labelledby="setup-title">
+        <div class="intro">
+          <p class="step">Begin your world</p>
+          <h2 id="setup-title">Where should everyone meet?</h2>
+          <p>Choose a place, then invite the people you would like to watch.</p>
+        </div>
+        <div id="scene-list" class="scene-list" aria-label="Places"></div>
+
+        <section id="character-step" class="character-step" aria-labelledby="character-title" hidden>
+          <div class="section-heading">
+            <div><p class="step">Next</p><h2 id="character-title">Who should be there?</h2></div>
+            <p>Invite at least one person. You can make each character your own before entering the world.</p>
+          </div>
+          <div id="character-list" class="character-list" aria-label="Characters to invite"></div>
+          <div id="chosen-wrap" class="chosen-wrap" hidden>
+            <h3>Joining the scene</h3>
+            <div id="chosen-list" class="chosen-list"></div>
+          </div>
+          <button id="enter-world" class="primary" type="button" disabled>Enter the world</button>
+        </section>
+      </section>
+
+      <section id="experience" class="experience" aria-labelledby="world-title" hidden>
+        <div class="world-heading">
+          <div><p class="step">Now watching</p><h2 id="world-title">Your little world</h2></div>
+          <p id="status" role="status">Ready when you are.</p>
+        </div>
+        <div class="world-frame">
+          <img id="world-image" alt="Your chosen characters in their world">
+        </div>
+        <section class="tuning" aria-label="Shape the world">
+          <label><span>Fortune</span><input id="world-tendency" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Fortune from troubled to joyful"><span class="ends"><span>Troubled</span><span>Joyful</span></span></label>
+          <label><span>Way of speaking</span><input id="pomposity" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Way of speaking from casual to theatrical"><span class="ends"><span>Casual</span><span>Theatrical</span></span></label>
+          <label><span>Humor</span><input id="humorousness" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Humor from thoughtful to hilarious"><span class="ends"><span>Thoughtful</span><span>Hilarious</span></span></label>
+          <label><span>Pace</span><input id="world-dynamic" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Pace from peaceful to lively"><span class="ends"><span>Peaceful</span><span>Lively</span></span></label>
+          <label class="next-development"><span>What should happen?</span><select id="requested-development" aria-label="What should happen next"></select><input id="custom-development" type="text" maxlength="500" placeholder="What should happen?" aria-label="Describe what should happen next" hidden></label>
+        </section>
+        <div class="playback" aria-label="Playback">
+          <button id="play" type="button" aria-label="Play" title="Play">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6L19 12 8 5.2Z"/></svg>
+          </button>
+          <button id="stop" type="button" aria-label="Stop" title="Stop" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg>
+          </button>
+        </div>
+        <p class="reload-note">To choose another place or change the cast, reload the page.</p>
+      </section>
+    </main>
+    <script type="module" src="../app-build/app/app.js"></script>
+  </body>
+</html>

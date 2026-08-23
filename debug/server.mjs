@@ -92,7 +92,7 @@ async function proxyResponse({ request, response, apiKey, fetchImpl }) {
 async function serveFile({ request, response, pathname, root }) {
   if (request.method !== "GET" && request.method !== "HEAD") return sendJson(response, 405, { error: "Method not allowed." });
   if (pathname === "/") {
-    response.writeHead(302, { Location: "/debug/" });
+    response.writeHead(302, { Location: "/app/" });
     response.end();
     return;
   }
@@ -147,6 +147,7 @@ if (isMain) {
   loadEnvFile(resolve(dirname(fileURLToPath(import.meta.url)), ".env"));
   const port = Number(process.env.PORT ?? 4173);
   createDebugServer().listen(port, "127.0.0.1", () => {
+    console.log(`Pixel Conversations: http://localhost:${port}/app/`);
     console.log(`State debugger: http://localhost:${port}/debug/`);
     if (!process.env.OPENAI_API_KEY) console.warn("OPENAI_API_KEY is not set; simulation requests will fail.");
   });

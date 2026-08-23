@@ -96,6 +96,20 @@ test("debug server serves the browser app from loopback", async () => {
   }
 });
 
+test("server opens the product app by default", async () => {
+  const { server, origin } = await start({ apiKey: "unused" });
+  try {
+    const root = await fetch(`${origin}/`, { redirect: "manual" });
+    assert.equal(root.status, 302);
+    assert.equal(root.headers.get("location"), "/app/");
+    const response = await fetch(`${origin}/app/`);
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /A little world to watch/);
+  } finally {
+    await stop(server);
+  }
+});
+
 test("debug server never serves dotenv files or other dotfiles", async () => {
   const { server, origin } = await start({ apiKey: "unused" });
   try {
@@ -106,10 +120,10 @@ test("debug server never serves dotenv files or other dotfiles", async () => {
   }
 });
 
-test("example config exposes all six scenes and ten production characters", async () => {
+test("example config exposes all six scenes and only asset-backed production characters", async () => {
   const example = JSON.parse(await readFile(new URL("./example-world.json", import.meta.url)));
   assert.deepEqual(example.scenes.map(({ id }) => id), ["community-cafe", "museum-reading-room", "riverside-park", "city-rooftop", "quiet-beach", "forest-clearing"]);
-  assert.equal(example.characters.length, 10);
+  assert.deepEqual(example.characters.map(({ id }) => id), ["felix-adebayo", "grace-kim", "celia-nwosu", "benoit-keller"]);
   for (const character of example.characters) {
     assert.match(character.profile, new RegExp(`/characters/${character.id}\\.json$`));
     assert.match(character.manifest, new RegExp(`/assets/characters/${character.id}/manifest\\.json$`));

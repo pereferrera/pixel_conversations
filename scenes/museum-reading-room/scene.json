@@ -91,7 +91,7 @@
     {"positions": ["front-center-right", "floor-center"], "facings": ["right", "left"]},
     {"positions": ["floor-center", "front-reading-right"], "facings": ["right", "left"]},
     {"positions": ["front-reading-right", "floor-right"], "facings": ["right", "left"]},
-    {"positions": ["chair-2/seat", "middle-reference-aisle"], "facings": ["right", "left"]},
+    {"positions": ["chair-2/seat", "middle-reference-aisle"], "facings": ["left", "right"]},
     {"positions": ["middle-reference-aisle", "floor-center"], "facings": ["right", "left"]}
   ],
   "capacityGuidance": {"comfortableCharacterCount": 5, "busyCharacterCount": 10, "comfortableBaselineSpacingPx": 180, "busyBaselineSpacingPx": 90},

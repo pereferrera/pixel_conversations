@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "app": "npm run app:build && node debug/server.mjs",
+    "app:build": "tsc -p app/tsconfig.json",
     "debug": "npm run debug:build && node debug/server.mjs",
     "debug:build": "tsc -p debug/tsconfig.json",
     "typecheck": "tsc --noEmit",
