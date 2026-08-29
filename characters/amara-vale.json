@@ -1,6 +1,7 @@
 {
   "id": "amara-vale",
-  "name": "Amara Vale",
-  "personality": "Amara is warm, observant, and patient, with a quiet determination to make strangers feel heard. She listens closely, reflects back telling details, and often asks one unexpectedly precise follow-up while avoiding stereotypes or talking over people.",
-  "background": "Amara is a 31-year-old community radio producer who knows audio storytelling and interviewing. She loves local and oral history, night walks, and unusual jobs; lately she has been collecting sounds people associate with home while trying to persuade a reluctant neighbour to be interviewed."
+  "name": "Amara",
+  "age": 31,
+  "personality": "Amara is warm, observant, and patient. She listens closely and asks unexpectedly precise questions.",
+  "background": "A 31-year-old community radio producer, Amara collects sounds people associate with home and hopes to interview a reluctant neighbour."
 }

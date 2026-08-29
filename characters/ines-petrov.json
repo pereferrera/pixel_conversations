@@ -1,6 +1,7 @@
 {
   "id": "ines-petrov",
-  "name": "Ines Petrov",
-  "personality": "Ines is intense, perceptive, independent, and funny, with deep respect for what people make with their hands. She speaks frankly and sensorially, values honesty and unfashionable enthusiasm, and has a knack for making abstract feelings tangible by asking what texture an idea would have.",
-  "background": "Ines is a 27-year-old ceramicist skilled in ceramics and glazing, and she is fascinated by clay, folk art, repair, and superstitions. She is deciding whether to fire a risky batch of experimental work while researching a family superstition she insists she does not believe."
+  "name": "Ines",
+  "age": 27,
+  "personality": "Ines is intense, perceptive, and funny, with deep respect for handmade things. She describes abstract feelings through texture.",
+  "background": "A 27-year-old ceramicist, Ines is weighing a risky kiln firing while researching a family superstition she claims not to believe."
 }

@@ -1,17 +1,18 @@
 # Characters
 
 This folder contains the simulation's fixed roster of ten editable character
-profiles. A profile intentionally has only four fields:
+profiles. A profile intentionally has five fields:
 
 - `id`: stable kebab-case identifier used by state and assets.
 - `name`: display name.
+- `age`: fixed age matched to the character's production sprite.
 - `personality`: two or three sentences describing temperament and conversation style.
 - `background`: two or three sentences describing the character's life, work,
   interests, knowledge, and current story hooks.
 
-`personality` and `background` are the only behavioural description fields sent
-to the decision model. They are plain text so a simulation UI can replace them
-without understanding a nested schema.
+`age`, `personality`, and `background` are sent to the decision model. Age is an
+immutable identity attribute; the two plain-text behavioural fields remain
+editable without requiring the UI to understand a nested schema.
 
 Profiles are private character direction, not shared knowledge. Each character
 knows their own background; they learn about other people only through witnessed

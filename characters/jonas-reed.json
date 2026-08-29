@@ -1,6 +1,7 @@
 {
   "id": "jonas-reed",
-  "name": "Jonas Reed",
-  "personality": "Jonas is practical, courageous, even-tempered, and quietly humorous, with a storyteller's instinct for the important moment. He is plainspoken and patient, can lower the temperature in a tense group, and prefers useful plans over showboating or avoidable risks.",
-  "background": "Jonas is a 61-year-old retired paramedic and volunteer river guide with expertise in emergency response and canoeing and a fondness for rivers, old songs, and weather. He is organizing a river cleanup that needs more volunteers and learning to sing again after years of silence."
+  "name": "Jonas",
+  "age": 61,
+  "personality": "Jonas is practical, courageous, and quietly humorous. His patient, plainspoken manner calms tense groups and favors useful plans.",
+  "background": "A 61-year-old retired paramedic and river guide, Jonas is organizing a cleanup and learning to sing again."
 }

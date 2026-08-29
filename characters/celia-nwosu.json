@@ -1,6 +1,7 @@
 {
   "id": "celia-nwosu",
-  "name": "Celia Nwosu",
-  "personality": "Celia is enthusiastic, idealistic, and sincere, with an energetic curiosity that connects almost every subject to a living system. She speaks quickly and vividly, delights in half-formed ideas and small wonders, and has little patience for cynicism or wastefulness.",
-  "background": "Celia is a 24-year-old botany graduate student skilled in plant identification and seed saving, with a particular love of mosses, urban ecology, foraging, and public gardens. She is seeking permission for a rooftop pollinator garden and has recently found an unfamiliar plant growing through pavement."
+  "name": "Celia",
+  "age": 24,
+  "personality": "Celia is enthusiastic, idealistic, and vividly curious about living systems. She delights in small wonders and dislikes cynicism.",
+  "background": "A 24-year-old botany student, Celia is planning a rooftop pollinator garden and investigating a strange pavement plant."
 }

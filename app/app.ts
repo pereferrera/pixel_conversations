@@ -13,8 +13,10 @@ interface CharacterDraft { option: CharacterOption; profile: CharacterProfile }
 
 const setup = element<HTMLElement>("setup");
 const experience = element<HTMLElement>("experience");
+const sceneStep = element<HTMLElement>("scene-step");
 const sceneList = element<HTMLElement>("scene-list");
 const characterStep = element<HTMLElement>("character-step");
+const backToScenesButton = element<HTMLButtonElement>("back-to-scenes");
 const characterList = element<HTMLElement>("character-list");
 const chosenWrap = element<HTMLElement>("chosen-wrap");
 const chosenList = element<HTMLElement>("chosen-list");
@@ -86,13 +88,20 @@ function renderSceneChoices(): void {
     button.addEventListener("click", () => {
       selectedScene = option;
       renderSceneChoices();
+      sceneStep.hidden = true;
       characterStep.hidden = false;
-      characterStep.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     });
     if (selectedScene?.id === option.id) button.classList.add("selected");
     return button;
   }));
 }
+
+backToScenesButton.addEventListener("click", () => {
+  characterStep.hidden = true;
+  sceneStep.hidden = false;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 
 function renderCharacterChoices(): void {
   characterList.replaceChildren(...config.characters.map((option) => {
@@ -148,9 +157,10 @@ function renderChosenCharacters(): void {
     const fields = document.createElement("div");
     fields.className = "character-fields";
     fields.append(
-      profileField("Name", draft.profile.name, false, (value) => { draft.profile.name = value; name.textContent = value || "Unnamed character"; }),
-      profileField("Personality", draft.profile.personality, true, (value) => { draft.profile.personality = value; }),
-      profileField("Background", draft.profile.background, true, (value) => { draft.profile.background = value; }),
+      profileField("Name", "name", draft, false, (value) => { draft.profile.name = value; name.textContent = value || "Unnamed character"; }),
+      fixedAgeField(draft.profile.age),
+      profileField("Personality", "personality", draft, true, (value) => { draft.profile.personality = value; }),
+      profileField("Background", "background", draft, true, (value) => { draft.profile.background = value; }),
     );
     details.append(detailsLabel, fields);
     card.append(summary, details);
@@ -158,15 +168,99 @@ function renderChosenCharacters(): void {
   }));
 }
 
-function profileField(labelText: string, initialValue: string, multiline: boolean, update: (value: string) => void): HTMLLabelElement {
-  const label = document.createElement("label");
+function profileField(labelText: string, field: keyof Pick<CharacterProfile, "name" | "personality" | "background">, draft: CharacterDraft, multiline: boolean, update: (value: string) => void): HTMLDivElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "profile-field";
+  const heading = document.createElement("div");
+  heading.className = "field-heading";
   const title = document.createElement("span");
   title.textContent = labelText;
   const input = multiline ? document.createElement("textarea") : document.createElement("input");
-  input.value = initialValue;
+  input.setAttribute("aria-label", labelText);
+  input.value = draft.profile[field];
   input.addEventListener("input", () => update(input.value));
-  label.append(title, input);
-  return label;
+  const generate = document.createElement("button");
+  generate.type = "button";
+  generate.className = "generate-field";
+  generate.textContent = "Generate";
+  generate.addEventListener("click", async () => {
+    generate.disabled = true;
+    generate.textContent = "Generating…";
+    try {
+      const value = await generateProfileValue(field, draft.option.id, draft.profile.age);
+      input.value = value;
+      update(value);
+      generate.textContent = "Generated";
+    } catch (error) {
+      console.error(error);
+      generate.textContent = "Try again";
+    } finally {
+      generate.disabled = false;
+      window.setTimeout(() => { if (!generate.disabled) generate.textContent = "Generate"; }, 1400);
+    }
+  });
+  heading.append(title, generate);
+  wrapper.append(heading, input);
+  return wrapper;
+}
+
+function fixedAgeField(age: number): HTMLDivElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "profile-field";
+  const heading = document.createElement("div");
+  heading.className = "field-heading";
+  const title = document.createElement("span");
+  title.textContent = "Age";
+  const fixed = document.createElement("span");
+  fixed.className = "fixed-field";
+  fixed.textContent = "Fixed to sprite";
+  const input = document.createElement("input");
+  input.value = String(age);
+  input.readOnly = true;
+  input.setAttribute("aria-label", "Age, fixed to character sprite");
+  heading.append(title, fixed);
+  wrapper.append(heading, input);
+  return wrapper;
+}
+
+async function generateProfileValue(field: "name" | "personality" | "background", characterId: string, age: number): Promise<string> {
+  const variationId = crypto.randomUUID();
+  const request = field === "name"
+    ? `Invent a completely new ${characterGender(characterId)} given name from any culture. Return exactly one word and nothing else.`
+    : field === "personality"
+      ? "Invent a completely new, surprising personality in one or two short sentences, about 18 words. Use only they/their pronouns. Do not include any personal names. Return only the personality text."
+      : `Invent a completely new background for a person who is exactly ${age} years old, with a random occupation, interests, and current story hook in one or two short sentences, about 22 words. Age ${age} is immutable: do not state, imply, or calculate any other age. Start with 'They'. Use only they/their pronouns. Do not include any personal names, named relatives, named acquaintances, named places, or brands. Return only the background text.`;
+  const response = await fetch("/api/responses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-5.6-luna",
+      instructions: "Generate a fresh randomized character-profile field. Do not continue, paraphrase, or infer any existing character content. For personality and background fields, never invent or output a personal name. When an immutable age is provided, preserve it exactly. Keep it grounded and free of stereotypes.",
+      input: `${request}\nIndependent variation id: ${variationId}`,
+      max_output_tokens: 100,
+      reasoning: { effort: "none" },
+      text: { verbosity: "low" },
+    }),
+  });
+  if (!response.ok) throw new Error(`Profile generation failed (${response.status}): ${await response.text()}`);
+  const text = responseOutputText(await response.json())?.trim().replace(/^['"]|['"]$/g, "");
+  if (!text) throw new Error("Profile generation returned no text.");
+  return field === "name" ? text.split(/\s+/)[0] : text;
+}
+
+function characterGender(characterId: string): "feminine" | "masculine" {
+  return new Set(["amara-vale", "celia-nwosu", "elise-morrow", "grace-kim", "ines-petrov"]).has(characterId) ? "feminine" : "masculine";
+}
+
+function responseOutputText(payload: any): string | null {
+  if (typeof payload?.output_text === "string" && payload.output_text.length) return payload.output_text;
+  if (!Array.isArray(payload?.output)) return null;
+  const text = payload.output
+    .flatMap((item: any) => Array.isArray(item?.content) ? item.content : [])
+    .filter((part: any) => part?.type === "output_text" && typeof part.text === "string")
+    .map((part: any) => part.text)
+    .join("");
+  return text || null;
 }
 
 enterButton.addEventListener("click", () => void enterWorld());

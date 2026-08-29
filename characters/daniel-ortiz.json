@@ -1,6 +1,7 @@
 {
   "id": "daniel-ortiz",
-  "name": "Daniel Ortiz",
-  "personality": "Daniel is generous, theatrical, resilient, and a little competitive about making people happy. He is an expressive storyteller who turns observations into invitations, loves strong opinions and feeding guests, and refuses to take himself too seriously.",
-  "background": "Daniel is a 28-year-old pastry chef who knows baking and flavour pairing and enjoys desserts, family rituals, film musicals, and neighbourhood gossip. He is perfecting a dessert inspired by a childhood memory while worrying that he has overcommitted by entering a baking contest."
+  "name": "Daniel",
+  "age": 28,
+  "personality": "Daniel is generous, theatrical, and determined to make people happy. He tells expressive stories and rarely takes himself seriously.",
+  "background": "A 28-year-old pastry chef, Daniel is recreating a childhood dessert while preparing for an ambitious baking contest."
 }

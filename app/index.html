@@ -15,14 +15,17 @@
       </header>
 
       <section id="setup" class="setup" aria-labelledby="setup-title">
-        <div class="intro">
-          <p class="step">Begin your world</p>
-          <h2 id="setup-title">Where should everyone meet?</h2>
-          <p>Choose a place, then invite the people you would like to watch.</p>
+        <div id="scene-step">
+          <div class="intro">
+            <p class="step">Begin your world</p>
+            <h2 id="setup-title">Where should everyone meet?</h2>
+            <p>Choose a place, then invite the people you would like to watch.</p>
+          </div>
+          <div id="scene-list" class="scene-list" aria-label="Places"></div>
         </div>
-        <div id="scene-list" class="scene-list" aria-label="Places"></div>
 
         <section id="character-step" class="character-step" aria-labelledby="character-title" hidden>
+          <button id="back-to-scenes" class="back-button" type="button">← Choose another place</button>
           <div class="section-heading">
             <div><p class="step">Next</p><h2 id="character-title">Who should be there?</h2></div>
             <p>Invite at least one person. You can make each character your own before entering the world.</p>

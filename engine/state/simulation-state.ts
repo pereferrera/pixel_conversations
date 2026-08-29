@@ -69,6 +69,7 @@ export interface Scene { id: string; positions: ScenePosition[]; conversationPai
 export interface CharacterProfile {
   id: string;
   name: string;
+  age: number;
   personality: string;
   background: string;
 }

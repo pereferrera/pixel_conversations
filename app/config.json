@@ -8,10 +8,16 @@
     { "id": "forest-clearing", "label": "Forest clearing", "definition": "/scenes/forest-clearing/scene.json", "thumbnail": "/assets/scenes/forest-clearing/example.png" }
   ],
   "characters": [
+    { "id": "amara-vale", "profile": "/characters/amara-vale.json", "manifest": "/assets/characters/amara-vale/manifest.json", "thumbnail": "/assets/characters/amara-vale/standing/front/neutral-idle.png" },
+    { "id": "benoit-keller", "profile": "/characters/benoit-keller.json", "manifest": "/assets/characters/benoit-keller/manifest.json", "thumbnail": "/assets/characters/benoit-keller/standing/front/neutral-idle.png" },
+    { "id": "celia-nwosu", "profile": "/characters/celia-nwosu.json", "manifest": "/assets/characters/celia-nwosu/manifest.json", "thumbnail": "/assets/characters/celia-nwosu/standing/front/neutral-idle.png" },
+    { "id": "daniel-ortiz", "profile": "/characters/daniel-ortiz.json", "manifest": "/assets/characters/daniel-ortiz/manifest.json", "thumbnail": "/assets/characters/daniel-ortiz/standing/front/neutral-idle.png" },
+    { "id": "elise-morrow", "profile": "/characters/elise-morrow.json", "manifest": "/assets/characters/elise-morrow/manifest.json", "thumbnail": "/assets/characters/elise-morrow/standing/front/neutral-idle.png" },
     { "id": "felix-adebayo", "profile": "/characters/felix-adebayo.json", "manifest": "/assets/characters/felix-adebayo/manifest.json", "thumbnail": "/assets/characters/felix-adebayo/standing/front/neutral-idle.png" },
     { "id": "grace-kim", "profile": "/characters/grace-kim.json", "manifest": "/assets/characters/grace-kim/manifest.json", "thumbnail": "/assets/characters/grace-kim/standing/front/neutral-idle.png" },
-    { "id": "celia-nwosu", "profile": "/characters/celia-nwosu.json", "manifest": "/assets/characters/celia-nwosu/manifest.json", "thumbnail": "/assets/characters/celia-nwosu/standing/front/neutral-idle.png" },
-    { "id": "benoit-keller", "profile": "/characters/benoit-keller.json", "manifest": "/assets/characters/benoit-keller/manifest.json", "thumbnail": "/assets/characters/benoit-keller/standing/front/neutral-idle.png" }
+    { "id": "hugo-martin", "profile": "/characters/hugo-martin.json", "manifest": "/assets/characters/hugo-martin/manifest.json", "thumbnail": "/assets/characters/hugo-martin/standing/front/neutral-idle.png" },
+    { "id": "ines-petrov", "profile": "/characters/ines-petrov.json", "manifest": "/assets/characters/ines-petrov/manifest.json", "thumbnail": "/assets/characters/ines-petrov/standing/front/neutral-idle.png" },
+    { "id": "jonas-reed", "profile": "/characters/jonas-reed.json", "manifest": "/assets/characters/jonas-reed/manifest.json", "thumbnail": "/assets/characters/jonas-reed/standing/front/neutral-idle.png" }
   ],
   "moodAssets": {
     "happy": "/assets/moods/happy.png",

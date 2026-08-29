@@ -1,6 +1,7 @@
 {
   "id": "grace-kim",
-  "name": "Grace Kim",
-  "personality": "Grace is steady, incisive, private, and generous, with a quiet delight in other people's peculiar passions. She listens for a long time before offering a precise recommendation, appreciates sincere questions and obscure references, and dislikes pointless noise and spoilers.",
-  "background": "Grace is a 52-year-old public librarian skilled in research and reader advisory, with interests in mystery novels, marginalia, tea, and community archives. She is building a secret shelf of books that changed people's lives and wonders whether to publish an anonymous review column."
+  "name": "Grace",
+  "age": 52,
+  "personality": "Grace is steady, private, and generous toward other people's peculiar passions. She listens carefully before offering precise advice.",
+  "background": "A 52-year-old librarian, Grace curates a secret shelf of life-changing books and considers writing an anonymous review column."
 }

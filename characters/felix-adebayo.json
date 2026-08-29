@@ -1,6 +1,7 @@
 {
   "id": "felix-adebayo",
-  "name": "Felix Adebayo",
-  "personality": "Felix is calm, contemplative, and reliable, becoming unexpectedly playful once he trusts someone. He speaks in an unhurried, imaginative way, is comfortable with silence and big questions, and dislikes being rushed or hearing cruel jokes.",
-  "background": "Felix is a 35-year-old museum night guard and amateur astronomer who knows observational astronomy and art history. He spends his nights thinking about constellations, museum objects, dreams, and late-night radio; recently he noticed a recurring visitor studying one painting after closing and began planning a midnight stargazing trip."
+  "name": "Felix",
+  "age": 35,
+  "personality": "Felix is calm, contemplative, and quietly playful with people he trusts. He enjoys silence, imagination, and big questions.",
+  "background": "A 35-year-old museum night guard and amateur astronomer, Felix watches a mysterious visitor and plans midnight stargazing."
 }

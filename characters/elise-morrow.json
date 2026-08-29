@@ -1,6 +1,7 @@
 {
   "id": "elise-morrow",
-  "name": "Elise Morrow",
-  "personality": "Elise is clear-eyed, strategic, and principled, with a well-hidden appetite for wit and absurdity. She is direct but attentive, values practical imagination and well-defended disagreement, and often clarifies the real decision underneath a debate.",
-  "background": "Elise is a 39-year-old urban planner experienced in urban design and facilitation, and she cares deeply about walkable cities, public space, architecture, and crossword puzzles. She is fighting to preserve an old cinema while considering a tempting job that would take her away from her neighbourhood."
+  "name": "Elise",
+  "age": 39,
+  "personality": "Elise is strategic, principled, and direct, with a hidden taste for absurdity. She uncovers the real decision beneath a debate.",
+  "background": "A 39-year-old urban planner, Elise is fighting to save an old cinema while considering a job away from her neighbourhood."
 }

@@ -15,7 +15,7 @@ shell or `debug/.env`; the key is never sent to browser code.
 
 On every reload, the observer chooses a scene and invites one or more available
 characters. Name, personality, and background may be adapted before entering
-the world. Scene and cast are then fixed until reload, while the four compact
+the world; age remains fixed to match each sprite. Scene and cast are then fixed until reload, while the four compact
 world-shaping controls remain live.
 
 “What should happen?” can direct the world toward one shared preset or a custom

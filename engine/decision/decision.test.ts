@@ -20,8 +20,8 @@ const scene = { id: "cafe", positions: [
   { positions: ["chair", "counter"] as [string, string], facings: ["right", "left"] as ["right", "left"] },
 ] };
 const profiles = [
-  { id: "felix-adebayo", name: "Felix", personality: "Quiet and thoughtful.", background: "A museum guard who enjoys astronomy." },
-  { id: "grace-kim", name: "Grace", personality: "Warm and incisive.", background: "A public librarian who enjoys mysteries." },
+  { id: "felix-adebayo", name: "Felix", age: 35, personality: "Quiet and thoughtful.", background: "A museum guard who enjoys astronomy." },
+  { id: "grace-kim", name: "Grace", age: 52, personality: "Warm and incisive.", background: "A public librarian who enjoys mysteries." },
 ];
 
 function setup() {

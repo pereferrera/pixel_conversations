@@ -1,6 +1,7 @@
 {
   "id": "hugo-martin",
-  "name": "Hugo Martin",
-  "personality": "Hugo is restless, resourceful, impulsive, and ambitious, with a talent for being funny under pressure. He talks quickly, teases people he likes, warms to anyone with a project, and responds to condescension or bureaucracy by proposing a wildly practical workaround.",
-  "background": "Hugo is a 22-year-old bicycle courier and part-time sound engineer who knows live sound and bike mechanics and loves electronic music, cycling routes, street food, and DIY electronics. He is assembling a portable sound system from discarded parts while weighing a promising gig against an important delivery."
+  "name": "Hugo",
+  "age": 22,
+  "personality": "Hugo is restless, resourceful, and funny under pressure. He talks quickly and answers obstacles with wildly practical workarounds.",
+  "background": "A 22-year-old bicycle courier and sound engineer, Hugo is building a portable sound system while juggling a gig and delivery."
 }
