@@ -65,7 +65,12 @@ export interface ConversationPair {
   positions: [string, string];
   facings: [FacingDirection, FacingDirection];
 }
-export interface Scene { id: string; positions: ScenePosition[]; conversationPairs: ConversationPair[] }
+export interface VisibleWorld {
+  setting: string;
+  visibleFeatures: string[];
+  boundaries: string[];
+}
+export interface Scene { id: string; visibleWorld?: VisibleWorld; positions: ScenePosition[]; conversationPairs: ConversationPair[] }
 export interface CharacterProfile {
   id: string;
   name: string;

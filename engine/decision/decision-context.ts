@@ -1,6 +1,6 @@
 import { WorldRules } from "./world-rules.js";
 import { ChangeType, Posture } from "../state/index.js";
-import type { CharacterProfile, ConversationPair, FacingDirection, PostureValue, Scene, SimulationSnapshot } from "../state/index.js";
+import type { CharacterProfile, ConversationPair, FacingDirection, PostureValue, Scene, SimulationSnapshot, VisibleWorld } from "../state/index.js";
 import { resolveSimulationTuning } from "./simulation-tuning.js";
 import type { SimulationTuning } from "./simulation-tuning.js";
 
@@ -80,7 +80,7 @@ export const ACTION_CATALOG: Record<ChangeType, ActionDefinition> = {
 };
 
 export interface DecisionContext {
-  scene: { id: string; positions: DecisionPosition[]; conversationPairs: ConversationPair[] };
+  scene: { id: string; visibleWorld: VisibleWorld; positions: DecisionPosition[]; conversationPairs: ConversationPair[] };
   characters: CharacterProfile[];
   state: SimulationSnapshot;
   tuning: SimulationTuning;
@@ -109,7 +109,16 @@ export function buildDecisionContext({ scene, profiles, state, tuning = {} }: { 
     occupiedBy: Object.entries(snapshot.characters).find(([, character]) => character.positionId === position.id)?.[0] ?? null,
   }));
   return {
-    scene: { id: scene.id, positions, conversationPairs: structuredClone(scene.conversationPairs) },
+    scene: {
+      id: scene.id,
+      visibleWorld: structuredClone(scene.visibleWorld ?? {
+        setting: scene.id,
+        visibleFeatures: [],
+        boundaries: ["Characters remain inside the current fixed scene."],
+      }),
+      positions,
+      conversationPairs: structuredClone(scene.conversationPairs),
+    },
     characters: structuredClone(profiles),
     state: snapshot,
     tuning: resolveSimulationTuning(tuning),

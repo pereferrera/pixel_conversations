@@ -1,6 +1,22 @@
 {
   "schemaVersion": 2,
   "id": "quiet-beach",
+  "visibleWorld": {
+    "setting": "A quiet sandy beach clearing beside the sea at sunset. The entire simulation remains within this open beach area.",
+    "visibleFeatures": [
+      "a broad sandy clearing with scattered stones and faint paths",
+      "a rope-and-post boundary along the back of the clearing",
+      "the calm ocean and shoreline",
+      "a low sun, warm sky, and soft clouds",
+      "beach grass, reeds, shrubs, rocks, and a distant headland",
+      "one two-seat driftwood bench and two driftwood chairs"
+    ],
+    "boundaries": [
+      "Characters cannot leave the clearing, cross the rope boundary, enter the sea, or travel to the distant headland.",
+      "There are no stairs, buildings, boats, roads, vehicles, shops, or usable off-screen facilities.",
+      "The ocean, sky, sun, clouds, shoreline, plants, rocks, rope boundary, and distant land are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152,
     "height": 648,
@@ -745,42 +761,12 @@
     },
     {
       "positions": [
-        "bench-1/left-seat",
-        "middle-left"
-      ],
-      "facings": [
-        "left",
-        "right"
-      ]
-    },
-    {
-      "positions": [
         "bench-1/right-seat",
         "middle-left"
       ],
       "facings": [
         "left",
         "right"
-      ]
-    },
-    {
-      "positions": [
-        "chair-1/seat",
-        "middle-center-right"
-      ],
-      "facings": [
-        "right",
-        "left"
-      ]
-    },
-    {
-      "positions": [
-        "chair-2/seat",
-        "middle-right"
-      ],
-      "facings": [
-        "right",
-        "left"
       ]
     }
   ],

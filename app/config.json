@@ -19,6 +19,7 @@
     { "id": "ines-petrov", "profile": "/characters/ines-petrov.json", "manifest": "/assets/characters/ines-petrov/manifest.json", "thumbnail": "/assets/characters/ines-petrov/standing/front/neutral-idle.png" },
     { "id": "jonas-reed", "profile": "/characters/jonas-reed.json", "manifest": "/assets/characters/jonas-reed/manifest.json", "thumbnail": "/assets/characters/jonas-reed/standing/front/neutral-idle.png" }
   ],
+  "audioTracks": "/audio/tracks.json",
   "moodAssets": {
     "happy": "/assets/moods/happy.png",
     "sad": "/assets/moods/sad.png",

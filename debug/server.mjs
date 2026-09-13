@@ -12,6 +12,7 @@ const TYPES = new Map([
   [".js", "text/javascript; charset=utf-8"],
   [".json", "application/json; charset=utf-8"],
   [".png", "image/png"],
+  [".wav", "audio/wav"],
 ]);
 
 /** Load a local dotenv file without replacing variables already supplied by the shell. */

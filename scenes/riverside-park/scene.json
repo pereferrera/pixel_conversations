@@ -1,6 +1,23 @@
 {
   "schemaVersion": 2,
   "id": "riverside-park",
+  "visibleWorld": {
+    "setting": "An open paved riverside promenade in calm golden daylight. The entire simulation remains on this section of promenade.",
+    "visibleFeatures": [
+      "a broad stone-paved walking area",
+      "a stone balustrade along the water",
+      "a calm river with reeds near the bank",
+      "large autumn trees, planted borders, grass, and shrubs",
+      "a distant arched stone bridge",
+      "a hazy skyline and trees across the river",
+      "one two-seat promenade bench and two promenade chairs"
+    ],
+    "boundaries": [
+      "Characters cannot leave this section of promenade, cross the bridge, enter the river, or travel to the distant skyline.",
+      "There are no stairs, buildings, indoor rooms, vehicles, shops, or usable off-screen facilities.",
+      "The river, bridge, balustrade, trees, plants, and distant scenery are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152,
     "height": 648,
@@ -745,42 +762,12 @@
     },
     {
       "positions": [
-        "bench-1/left-seat",
-        "middle-left"
-      ],
-      "facings": [
-        "left",
-        "right"
-      ]
-    },
-    {
-      "positions": [
         "bench-1/right-seat",
         "middle-left"
       ],
       "facings": [
         "left",
         "right"
-      ]
-    },
-    {
-      "positions": [
-        "chair-1/seat",
-        "middle-center-right"
-      ],
-      "facings": [
-        "right",
-        "left"
-      ]
-    },
-    {
-      "positions": [
-        "chair-2/seat",
-        "middle-right"
-      ],
-      "facings": [
-        "right",
-        "left"
       ]
     }
   ],

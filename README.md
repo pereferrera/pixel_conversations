@@ -122,7 +122,7 @@ Scenes are static pixel-art environments.
 
 ## Music
 
-There are exactly **7 ambient music tracks**.
+There are exactly **2 ambient music tracks**.
 
 Each track is designed to support a particular atmosphere rather than attract attention.
 

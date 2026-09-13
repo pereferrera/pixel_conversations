@@ -192,6 +192,7 @@ test("director gives complete context to a provider and applies only valid chang
   assert.equal(context.scene.id, "cafe");
   assert.equal(context.scene.positions[0].occupiedBy, "felix-adebayo");
   assert.deepEqual(context.scene.conversationPairs, scene.conversationPairs);
+  assert.equal(context.scene.visibleWorld.setting, scene.id);
   assert.equal("renderer" in context.scene.positions[0], false);
   assert.match(context.rules.actions.placeCharacter.fields.facing, /allowed/);
   assert.equal(context.rules.actions.placeCharacter.type, "placeCharacter");
@@ -216,6 +217,11 @@ test("decision prompt requires changes and appends recent world summaries", () =
   assert.match(prompt, /do not repeat or lightly paraphrase the same actions, conflicts, conversation cycles, events, hazards, or outcomes/);
   assert.match(prompt, /WORLD TENDENCY 0: Keep outcomes balanced/);
   assert.match(prompt, /IMPORTANT—write dialogue that sounds spoken by real people, not literary narration/);
+  assert.match(prompt, /CAMERA TRUTH:/);
+  assert.match(prompt, /visible background features may be noticed, looked at, pointed toward, or discussed/i);
+  assert.match(prompt, /may say they intend to go downstairs later/);
+  assert.match(prompt, /Never imply unrepresented travel, object interaction, arrival, departure, scene transition, or off-screen action/);
+  assert.match(prompt, /cannot introduce another person, animal, object, sound source, physical action, environmental change, or off-screen occurrence/);
   assert.match(prompt, /WORLD DYNAMIC 0:/);
   assert.match(prompt, /start a conversation in about 60%/);
   assert.match(prompt, /speech in about 90% of active-conversation steps/);

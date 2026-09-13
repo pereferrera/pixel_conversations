@@ -1,0 +1,20 @@
+[
+  {
+    "id": "soft-neon-windows",
+    "title": "Soft Neon Windows",
+    "file": "../assets/audio/soft-neon-windows.wav",
+    "durationSeconds": 26.667,
+    "bpm": 72,
+    "mood": "vaporwave, nostalgic",
+    "loop": true
+  },
+  {
+    "id": "glass-corridor",
+    "title": "Glass Corridor",
+    "file": "../assets/audio/glass-corridor.wav",
+    "durationSeconds": 35.556,
+    "bpm": 54,
+    "mood": "ambient, no drums",
+    "loop": true
+  }
+]

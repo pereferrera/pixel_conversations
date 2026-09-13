@@ -8,8 +8,9 @@ import type { CharacterMoodHoverBinding, RenderingConfig } from "../rendering/in
 
 interface SceneOption { id: string; label: string; definition: string; thumbnail: string }
 interface CharacterOption { id: string; profile: string; manifest: string; thumbnail: string }
-interface AppConfig { scenes: SceneOption[]; characters: CharacterOption[]; moodAssets: RenderingConfig["moodAssets"] }
+interface AppConfig { scenes: SceneOption[]; characters: CharacterOption[]; audioTracks: string; moodAssets: RenderingConfig["moodAssets"] }
 interface CharacterDraft { option: CharacterOption; profile: CharacterProfile }
+interface AudioTrack { id: string; title: string; file: string; durationSeconds: number; bpm: number; mood: string; loop: boolean }
 
 const setup = element<HTMLElement>("setup");
 const experience = element<HTMLElement>("experience");
@@ -18,14 +19,16 @@ const sceneList = element<HTMLElement>("scene-list");
 const characterStep = element<HTMLElement>("character-step");
 const backToScenesButton = element<HTMLButtonElement>("back-to-scenes");
 const characterList = element<HTMLElement>("character-list");
-const chosenWrap = element<HTMLElement>("chosen-wrap");
-const chosenList = element<HTMLElement>("chosen-list");
 const enterButton = element<HTMLButtonElement>("enter-world");
 const worldTitle = element<HTMLElement>("world-title");
 const status = element<HTMLElement>("status");
 const worldImage = element<HTMLImageElement>("world-image");
 const playButton = element<HTMLButtonElement>("play");
 const stopButton = element<HTMLButtonElement>("stop");
+const musicPlayer = element<HTMLElement>("music-player");
+const musicToggleButton = element<HTMLButtonElement>("music-toggle");
+const musicTrackSelect = element<HTMLSelectElement>("music-track");
+const musicVolumeInput = element<HTMLInputElement>("music-volume");
 const requestedDevelopmentSelect = element<HTMLSelectElement>("requested-development");
 const customDevelopmentInput = element<HTMLInputElement>("custom-development");
 const tuningInputs = {
@@ -45,9 +48,13 @@ let rendering!: RenderingConfig;
 let simulationState!: SimulationState;
 let running = false;
 let busy = false;
+let consecutiveStepFailures = 0;
 let worldImageUrl: string | null = null;
 let moodHoverBinding: CharacterMoodHoverBinding | null = null;
 const readabilityPacer = new ReadabilityPacer();
+let audioTracks: AudioTrack[] = [];
+const backgroundMusic = new Audio();
+let musicMuted = readMusicPreference("musicMuted") === "true";
 
 requestedDevelopmentSelect.replaceChildren(
   selectOption("", "Let faith choose"),
@@ -59,6 +66,16 @@ requestedDevelopmentSelect.addEventListener("change", () => {
   if (!customDevelopmentInput.hidden) customDevelopmentInput.focus();
 });
 
+musicVolumeInput.value = readMusicPreference("musicVolume") ?? musicVolumeInput.value;
+backgroundMusic.volume = Number(musicVolumeInput.value);
+backgroundMusic.muted = musicMuted;
+setMusicMuted(musicMuted);
+musicToggleButton.addEventListener("click", () => setMusicMuted(!musicMuted));
+musicVolumeInput.addEventListener("input", () => {
+  backgroundMusic.volume = Number(musicVolumeInput.value);
+  storeMusicPreference("musicVolume", musicVolumeInput.value);
+});
+
 void loadApp();
 
 async function loadApp(): Promise<void> {
@@ -66,8 +83,9 @@ async function loadApp(): Promise<void> {
     config = await checkedJson<AppConfig>(await fetch("./config.json"));
     const loaded = await Promise.all(config.characters.map(async ({ profile }) => checkedJson<CharacterProfile>(await fetch(profile))));
     availableProfiles = new Map(loaded.map((profile) => [profile.id, profile]));
+    await loadAudioTracks();
     renderSceneChoices();
-    renderCharacterChoices();
+    renderCharacterList();
   } catch (error) {
     showError(error);
   }
@@ -103,72 +121,115 @@ backToScenesButton.addEventListener("click", () => {
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-function renderCharacterChoices(): void {
-  characterList.replaceChildren(...config.characters.map((option) => {
-    const profile = availableProfiles.get(option.id)!;
-    const card = document.createElement("article");
-    card.className = "character-choice";
-    const portrait = portraitNode(option, profile.name);
-    const content = document.createElement("div");
-    const name = document.createElement("strong");
-    name.textContent = profile.name;
-    const add = document.createElement("button");
-    add.type = "button";
-    add.className = "add-character";
-    add.textContent = chosen.has(option.id) ? "Invited" : "Invite";
-    add.disabled = chosen.has(option.id);
-    add.addEventListener("click", () => {
-      chosen.set(option.id, { option, profile: structuredClone(profile) });
-      renderCharacterChoices();
-      renderChosenCharacters();
-    });
-    content.append(name, add);
-    card.append(portrait, content);
-    return card;
-  }));
-}
+const CUSTOMIZE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25ZM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1.003 1.003 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg>';
 
-function renderChosenCharacters(): void {
-  chosenWrap.hidden = chosen.size === 0;
+function renderCharacterList(): void {
   enterButton.disabled = chosen.size === 0 || !selectedScene;
-  chosenList.replaceChildren(...[...chosen.values()].map((draft) => {
-    const card = document.createElement("article");
-    card.className = "chosen-character";
-    const summary = document.createElement("div");
-    summary.className = "chosen-summary";
-    const portrait = portraitNode(draft.option, draft.profile.name);
-    const name = document.createElement("span");
-    name.className = "chosen-name";
-    name.textContent = draft.profile.name;
-    const remove = document.createElement("button");
-    remove.type = "button";
-    remove.className = "remove-character";
-    remove.setAttribute("aria-label", `Remove ${draft.profile.name}`);
-    remove.textContent = "×";
-    remove.addEventListener("click", () => {
-      chosen.delete(draft.option.id);
-      renderCharacterChoices();
-      renderChosenCharacters();
-    });
-    summary.append(portrait, name, remove);
-    const details = document.createElement("details");
-    const detailsLabel = document.createElement("summary");
-    detailsLabel.textContent = "Make this character your own";
-    const fields = document.createElement("div");
-    fields.className = "character-fields";
-    fields.append(
-      profileField("Name", "name", draft, false, (value) => { draft.profile.name = value; name.textContent = value || "Unnamed character"; }),
-      fixedAgeField(draft.profile.age),
-      profileField("Personality", "personality", draft, true, (value) => { draft.profile.personality = value; }),
-      profileField("Background", "background", draft, true, (value) => { draft.profile.background = value; }),
-    );
-    details.append(detailsLabel, fields);
-    card.append(summary, details);
-    return card;
+  characterList.replaceChildren(...config.characters.map((option) => {
+    const draft = chosen.get(option.id);
+    return draft ? chosenCard(draft) : inviteCard(option);
   }));
 }
 
-function profileField(labelText: string, field: keyof Pick<CharacterProfile, "name" | "personality" | "background">, draft: CharacterDraft, multiline: boolean, update: (value: string) => void): HTMLDivElement {
+function inviteCard(option: CharacterOption): HTMLElement {
+  const profile = availableProfiles.get(option.id)!;
+  const card = document.createElement("article");
+  card.className = "character-card";
+  const summary = document.createElement("div");
+  summary.className = "character-summary";
+  const portrait = portraitNode(option, profile.name);
+  const name = document.createElement("span");
+  name.className = "character-name";
+  name.textContent = profile.name;
+  const invite = document.createElement("button");
+  invite.type = "button";
+  invite.className = "invite-character";
+  invite.textContent = "Invite";
+  invite.addEventListener("click", () => {
+    chosen.set(option.id, { option, profile: structuredClone(profile) });
+    renderCharacterList();
+  });
+  const actions = document.createElement("div");
+  actions.className = "character-actions";
+  actions.append(invite);
+  summary.append(portrait, name, actions);
+  card.append(summary);
+  return card;
+}
+
+function chosenCard(draft: CharacterDraft): HTMLElement {
+  const card = document.createElement("article");
+  card.className = "character-card chosen";
+  const summary = document.createElement("div");
+  summary.className = "character-summary";
+  const portrait = portraitNode(draft.option, draft.profile.name);
+  const name = document.createElement("span");
+  name.className = "character-name";
+  name.textContent = draft.profile.name;
+  const customizeToggle = document.createElement("button");
+  customizeToggle.type = "button";
+  customizeToggle.className = "customize-toggle";
+  customizeToggle.setAttribute("aria-label", "Customize this character");
+  customizeToggle.setAttribute("aria-expanded", "false");
+  customizeToggle.title = "Customize this character";
+  customizeToggle.innerHTML = CUSTOMIZE_ICON;
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "remove-character";
+  remove.setAttribute("aria-label", `Remove ${draft.profile.name}`);
+  remove.textContent = "×";
+  remove.addEventListener("click", () => {
+    chosen.delete(draft.option.id);
+    renderCharacterList();
+  });
+  const actions = document.createElement("div");
+  actions.className = "character-actions";
+  actions.append(customizeToggle, remove);
+  summary.append(portrait, name, actions);
+
+  const fields = document.createElement("div");
+  fields.className = "character-fields";
+  fields.hidden = true;
+  customizeToggle.addEventListener("click", () => {
+    const expanded = customizeToggle.getAttribute("aria-expanded") === "true";
+    customizeToggle.setAttribute("aria-expanded", String(!expanded));
+    fields.hidden = expanded;
+  });
+
+  const nameField = profileField("Name", draft.profile.name, false, (value) => { draft.profile.name = value; name.textContent = value || "Unnamed character"; });
+  const personalityField = profileField("Personality", draft.profile.personality, true, (value) => { draft.profile.personality = value; });
+  const backgroundField = profileField("Background", draft.profile.background, true, (value) => { draft.profile.background = value; });
+  const regenerate = document.createElement("button");
+  regenerate.type = "button";
+  regenerate.className = "generate-all";
+  regenerate.textContent = "Generate";
+  regenerate.addEventListener("click", async () => {
+    regenerate.disabled = true;
+    regenerate.textContent = "Generating…";
+    try {
+      const [newPersonality, newBackground] = await Promise.all([
+        generateProfileValue("personality", draft.profile.name, draft.profile.age),
+        generateProfileValue("background", draft.profile.name, draft.profile.age),
+      ]);
+      personalityField.input.value = newPersonality;
+      draft.profile.personality = newPersonality;
+      backgroundField.input.value = newBackground;
+      draft.profile.background = newBackground;
+      regenerate.textContent = "Generated";
+    } catch (error) {
+      console.error(error);
+      regenerate.textContent = "Try again";
+    } finally {
+      regenerate.disabled = false;
+      window.setTimeout(() => { if (!regenerate.disabled) regenerate.textContent = "Generate"; }, 1400);
+    }
+  });
+  fields.append(nameField.wrapper, fixedAgeField(draft.profile.age), personalityField.wrapper, backgroundField.wrapper, regenerate);
+  card.append(summary, fields);
+  return card;
+}
+
+function profileField(labelText: string, value: string, multiline: boolean, update: (value: string) => void): { wrapper: HTMLDivElement; input: HTMLInputElement | HTMLTextAreaElement } {
   const wrapper = document.createElement("div");
   wrapper.className = "profile-field";
   const heading = document.createElement("div");
@@ -177,31 +238,11 @@ function profileField(labelText: string, field: keyof Pick<CharacterProfile, "na
   title.textContent = labelText;
   const input = multiline ? document.createElement("textarea") : document.createElement("input");
   input.setAttribute("aria-label", labelText);
-  input.value = draft.profile[field];
+  input.value = value;
   input.addEventListener("input", () => update(input.value));
-  const generate = document.createElement("button");
-  generate.type = "button";
-  generate.className = "generate-field";
-  generate.textContent = "Generate";
-  generate.addEventListener("click", async () => {
-    generate.disabled = true;
-    generate.textContent = "Generating…";
-    try {
-      const value = await generateProfileValue(field, draft.option.id, draft.profile.age);
-      input.value = value;
-      update(value);
-      generate.textContent = "Generated";
-    } catch (error) {
-      console.error(error);
-      generate.textContent = "Try again";
-    } finally {
-      generate.disabled = false;
-      window.setTimeout(() => { if (!generate.disabled) generate.textContent = "Generate"; }, 1400);
-    }
-  });
-  heading.append(title, generate);
+  heading.append(title);
   wrapper.append(heading, input);
-  return wrapper;
+  return { wrapper, input };
 }
 
 function fixedAgeField(age: number): HTMLDivElement {
@@ -223,19 +264,17 @@ function fixedAgeField(age: number): HTMLDivElement {
   return wrapper;
 }
 
-async function generateProfileValue(field: "name" | "personality" | "background", characterId: string, age: number): Promise<string> {
+async function generateProfileValue(field: "personality" | "background", name: string, age: number): Promise<string> {
   const variationId = crypto.randomUUID();
-  const request = field === "name"
-    ? `Invent a completely new ${characterGender(characterId)} given name from any culture. Return exactly one word and nothing else.`
-    : field === "personality"
-      ? "Invent a completely new, surprising personality in one or two short sentences, about 18 words. Use only they/their pronouns. Do not include any personal names. Return only the personality text."
-      : `Invent a completely new background for a person who is exactly ${age} years old, with a random occupation, interests, and current story hook in one or two short sentences, about 22 words. Age ${age} is immutable: do not state, imply, or calculate any other age. Start with 'They'. Use only they/their pronouns. Do not include any personal names, named relatives, named acquaintances, named places, or brands. Return only the background text.`;
+  const request = field === "personality"
+    ? `Invent a completely new, surprising personality for a character named ${name} in one or two short sentences, about 18 words. Return only the personality text.`
+    : `Invent a completely new background for ${name}, who is exactly ${age} years old, with a random occupation, interests, and current story hook in one or two short sentences, about 22 words. Age ${age} is immutable: do not state, imply, or calculate any other age. Return only the background text.`;
   const response = await fetch("/api/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: "gpt-5.6-luna",
-      instructions: "Generate a fresh randomized character-profile field. Do not continue, paraphrase, or infer any existing character content. For personality and background fields, never invent or output a personal name. When an immutable age is provided, preserve it exactly. Keep it grounded and free of stereotypes.",
+      instructions: "Generate a fresh randomized character-profile field. Do not continue, paraphrase, or infer any existing character content. You may naturally refer to the given character by their name, but never invent another named person, named place, or brand. When an immutable age is provided, preserve it exactly. Keep it grounded and free of stereotypes.",
       input: `${request}\nIndependent variation id: ${variationId}`,
       max_output_tokens: 100,
       reasoning: { effort: "none" },
@@ -245,11 +284,7 @@ async function generateProfileValue(field: "name" | "personality" | "background"
   if (!response.ok) throw new Error(`Profile generation failed (${response.status}): ${await response.text()}`);
   const text = responseOutputText(await response.json())?.trim().replace(/^['"]|['"]$/g, "");
   if (!text) throw new Error("Profile generation returned no text.");
-  return field === "name" ? text.split(/\s+/)[0] : text;
-}
-
-function characterGender(characterId: string): "feminine" | "masculine" {
-  return new Set(["amara-vale", "celia-nwosu", "elise-morrow", "grace-kim", "ines-petrov"]).has(characterId) ? "feminine" : "masculine";
+  return text;
 }
 
 function responseOutputText(payload: any): string | null {
@@ -264,13 +299,7 @@ function responseOutputText(payload: any): string | null {
 }
 
 enterButton.addEventListener("click", () => void enterWorld());
-playButton.addEventListener("click", () => {
-  if (running) return;
-  running = true;
-  updatePlayback();
-  setStatus("The world is coming to life…");
-  if (!busy) void runNextStep();
-});
+playButton.addEventListener("click", startPlaying);
 stopButton.addEventListener("click", () => {
   running = false;
   updatePlayback();
@@ -280,6 +309,7 @@ stopButton.addEventListener("click", () => {
 async function enterWorld(): Promise<void> {
   if (!selectedScene || chosen.size === 0) return;
   enterButton.disabled = true;
+  startBackgroundMusic();
   try {
     scene = await checkedJson<Scene>(await fetch(selectedScene.definition));
     profiles = [...chosen.values()].map(({ profile }) => ({ ...profile, name: profile.name.trim() || "Unnamed character", personality: profile.personality.trim(), background: profile.background.trim() }));
@@ -294,12 +324,20 @@ async function enterWorld(): Promise<void> {
     setup.hidden = true;
     experience.hidden = false;
     await refreshWorldImage();
-    setStatus("Ready when you are.");
     experience.scrollIntoView({ behavior: "smooth", block: "start" });
+    startPlaying();
   } catch (error) {
     enterButton.disabled = false;
     showError(error);
   }
+}
+
+function startPlaying(): void {
+  if (running) return;
+  running = true;
+  updatePlayback();
+  setStatus("The world is coming to life…");
+  if (!busy) void runNextStep();
 }
 
 async function runNextStep(): Promise<void> {
@@ -329,10 +367,14 @@ async function runNextStep(): Promise<void> {
     await readabilityPacer.waitUntilReadable();
     applyDecision(simulationState, decision, rulesFor(context));
     await refreshWorldImage();
+    consecutiveStepFailures = 0;
     setStatus(running ? "Watching…" : "The world is resting.");
   } catch (error) {
-    running = false;
-    showError(error);
+    console.error(error);
+    consecutiveStepFailures += 1;
+    const retryDelayMs = Math.min(1_000 * 2 ** (consecutiveStepFailures - 1), 30_000);
+    setStatus(`That moment did not work. The world will try again in ${Math.ceil(retryDelayMs / 1_000)}s…`);
+    await wait(retryDelayMs);
   } finally {
     busy = false;
     updatePlayback();
@@ -357,6 +399,60 @@ async function proxyFetch(_input: string | URL | Request, init?: RequestInit): P
   return fetch("/api/responses", { method: "POST", headers: { "Content-Type": "application/json" }, body: init?.body });
 }
 
+async function loadAudioTracks(): Promise<void> {
+  try {
+    audioTracks = await checkedJson<AudioTrack[]>(await fetch(config.audioTracks));
+  } catch (error) {
+    console.error(error);
+    audioTracks = [];
+  }
+  musicPlayer.hidden = audioTracks.length === 0;
+  musicTrackSelect.replaceChildren(...audioTracks.map((track, index) => selectOption(String(index), track.title)));
+  musicTrackSelect.addEventListener("change", () => playTrack(Number(musicTrackSelect.value)));
+}
+
+function startBackgroundMusic(): void {
+  if (!audioTracks.length || backgroundMusic.src) return;
+  playTrack(Math.floor(Math.random() * audioTracks.length));
+}
+
+function playTrack(index: number): void {
+  const track = audioTracks[index];
+  if (!track) return;
+  musicTrackSelect.value = String(index);
+  backgroundMusic.src = new URL(track.file, new URL(config.audioTracks, location.href)).href;
+  backgroundMusic.loop = track.loop;
+  void backgroundMusic.play().catch((error) => console.error(error));
+}
+
+function setMusicMuted(muted: boolean): void {
+  musicMuted = muted;
+  backgroundMusic.muted = muted;
+  const label = muted ? "Turn on background music" : "Turn off background music";
+  musicToggleButton.setAttribute("aria-pressed", String(!muted));
+  musicToggleButton.setAttribute("aria-label", label);
+  musicToggleButton.title = label;
+  musicToggleButton.querySelector(".icon-on")?.toggleAttribute("hidden", muted);
+  musicToggleButton.querySelector(".icon-off")?.toggleAttribute("hidden", !muted);
+  storeMusicPreference("musicMuted", String(muted));
+}
+
+function readMusicPreference(key: string): string | null {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storeMusicPreference(key: string, value: string): void {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore storage failures (e.g. private browsing); the session default still applies.
+  }
+}
+
 function portraitNode(option: CharacterOption, name: string): HTMLDivElement {
   const portrait = document.createElement("div");
   portrait.className = "portrait";
@@ -373,6 +469,7 @@ function updatePlayback(): void {
 }
 
 function setStatus(message: string): void { status.textContent = message; }
+function wait(durationMs: number): Promise<void> { return new Promise((resolve) => window.setTimeout(resolve, durationMs)); }
 function requestedDevelopment(): string | null { const value = requestedDevelopmentSelect.value === "custom" ? customDevelopmentInput.value.trim() : requestedDevelopmentSelect.value; return value || null; }
 function selectOption(value: string, label: string): HTMLOptionElement { const item = document.createElement("option"); item.value = value; item.textContent = label; return item; }
 function showError(error: unknown): void { console.error(error); setStatus("Something interrupted the world. Please reload and try again."); }

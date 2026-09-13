@@ -1,6 +1,25 @@
 {
   "schemaVersion": 2,
   "id": "museum-reading-room",
+  "visibleWorld": {
+    "setting": "A dim, formal museum reading room and gallery. The entire simulation remains inside this single room.",
+    "visibleFeatures": [
+      "tall dark wooden bookcases filled with books",
+      "high windows showing cool daylight",
+      "warm wall lamps",
+      "a closed central wooden door",
+      "framed maps, plans, portraits, and diagrams",
+      "glass-topped display cabinets containing open books, papers, and small artifacts",
+      "wooden cabinets, drawers, ceramic vessels, and decorative objects",
+      "a patterned parquet floor",
+      "one navy two-seat reading bench and two burgundy reading chairs"
+    ],
+    "boundaries": [
+      "Characters cannot open the central door or leave the reading room.",
+      "There are no stairs or accessible adjoining galleries.",
+      "Books, cabinets, maps, display cases, documents, artifacts, lamps, and decorations are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152, "height": 648, "origin": "top-left",
     "pixelsPerCm": 0.957446,
@@ -91,7 +110,6 @@
     {"positions": ["front-center-right", "floor-center"], "facings": ["right", "left"]},
     {"positions": ["floor-center", "front-reading-right"], "facings": ["right", "left"]},
     {"positions": ["front-reading-right", "floor-right"], "facings": ["right", "left"]},
-    {"positions": ["chair-2/seat", "middle-reference-aisle"], "facings": ["left", "right"]},
     {"positions": ["middle-reference-aisle", "floor-center"], "facings": ["right", "left"]}
   ],
   "capacityGuidance": {"comfortableCharacterCount": 5, "busyCharacterCount": 10, "comfortableBaselineSpacingPx": 180, "busyBaselineSpacingPx": 90},

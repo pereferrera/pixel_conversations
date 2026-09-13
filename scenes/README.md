@@ -68,6 +68,9 @@ Each scene has a `scene.json` with:
   stable `(elementInstanceId, seatId)` pair described below.
 - `conversationPairs`: the physical position pairs close enough for a
   two-person conversation, with the required left/right facing at each position.
+- `visibleWorld`: the complete model-facing inventory of the fixed setting,
+  referenceable visual features, and physical boundaries. Background features
+  may be discussed but are not interactive simulation objects.
 - `example.instances`: the exact elements and characters used in `example.png`.
 
 Polygons use inclusive integer pixel coordinates and must list points clockwise.

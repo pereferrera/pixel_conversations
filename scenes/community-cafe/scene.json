@@ -1,6 +1,25 @@
 {
   "schemaVersion": 2,
   "id": "community-cafe",
+  "visibleWorld": {
+    "setting": "A warm community cafe with a large open wooden floor. The entire simulation remains inside this single room.",
+    "visibleFeatures": [
+      "a closed teal entrance door",
+      "large windows showing trees and distant buildings",
+      "hanging pendant lights and wall lamps",
+      "framed notices, pictures, and wall decorations",
+      "potted and hanging plants",
+      "built-in bookshelves and books",
+      "a long service counter with cabinets and a tiled backsplash",
+      "an espresso machine, cups, jars, and a pastry display behind the counter",
+      "one teal two-seat bench and two wooden chairs"
+    ],
+    "boundaries": [
+      "Characters cannot leave through the entrance door or go behind the service counter.",
+      "There are no stairs, additional rooms, or usable off-screen facilities.",
+      "Cafe equipment, books, plants, displays, doors, and decorations are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152,
     "height": 648,
@@ -146,7 +165,6 @@
     {"positions": ["bench-1/left-seat", "bench-1/right-seat"], "facings": ["right", "left"]},
     {"positions": ["bench-1/left-seat", "floor-left"], "facings": ["right", "left"]},
     {"positions": ["bench-1/right-seat", "floor-left"], "facings": ["right", "left"]},
-    {"positions": ["chair-2/seat", "floor-center"], "facings": ["right", "left"]},
     {"positions": ["chair-1/seat", "floor-right"], "facings": ["right", "left"]},
     {"positions": ["floor-left", "floor-center"], "facings": ["right", "left"]},
     {"positions": ["floor-center", "floor-right"], "facings": ["right", "left"]},
@@ -163,9 +181,7 @@
     {"positions": ["front-center-left", "floor-center"], "facings": ["right", "left"]},
     {"positions": ["floor-center", "front-center-right"], "facings": ["right", "left"]},
     {"positions": ["front-center-right", "front-lounge-right"], "facings": ["right", "left"]},
-    {"positions": ["front-lounge-right", "floor-right"], "facings": ["right", "left"]},
-    {"positions": ["chair-2/seat", "middle-service-aisle"], "facings": ["right", "left"]},
-    {"positions": ["middle-service-aisle", "floor-center"], "facings": ["right", "left"]}
+    {"positions": ["front-lounge-right", "floor-right"], "facings": ["right", "left"]}
   ],
   "capacityGuidance": {
     "comfortableCharacterCount": 5,

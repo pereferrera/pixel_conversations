@@ -31,10 +31,6 @@
             <p>Invite at least one person. You can make each character your own before entering the world.</p>
           </div>
           <div id="character-list" class="character-list" aria-label="Characters to invite"></div>
-          <div id="chosen-wrap" class="chosen-wrap" hidden>
-            <h3>Joining the scene</h3>
-            <div id="chosen-list" class="chosen-list"></div>
-          </div>
           <button id="enter-world" class="primary" type="button" disabled>Enter the world</button>
         </section>
       </section>
@@ -46,6 +42,14 @@
         </div>
         <div class="world-frame">
           <img id="world-image" alt="Your chosen characters in their world">
+          <div id="music-player" class="music-player" aria-label="Background music">
+            <button id="music-toggle" type="button" aria-pressed="true" aria-label="Turn off background music" title="Turn off background music">
+              <svg class="icon-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3Zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02ZM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77Z"/></svg>
+              <svg class="icon-off" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3ZM19 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63Zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C23.63 14.91 24 13.5 24 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71ZM12 4 9.91 6.09 12 8.18V4Z"/></svg>
+            </button>
+            <select id="music-track" aria-label="Background music track"></select>
+            <input id="music-volume" type="range" min="0" max="1" step="0.01" value="0.5" aria-label="Music volume">
+          </div>
         </div>
         <section class="tuning" aria-label="Shape the world">
           <label><span>Fortune</span><input id="world-tendency" type="range" min="-1" max="1" step="0.1" value="0" aria-label="Fortune from troubled to joyful"><span class="ends"><span>Troubled</span><span>Joyful</span></span></label>

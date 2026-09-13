@@ -1,6 +1,23 @@
 {
   "schemaVersion": 2,
   "id": "city-rooftop",
+  "visibleWorld": {
+    "setting": "A planted city rooftop terrace at blue hour. The entire simulation remains on the open terrace.",
+    "visibleFeatures": [
+      "a broad tiled terrace floor",
+      "a low brick parapet with warm rooftop lamps",
+      "planters containing shrubs, grasses, flowers, and small trees",
+      "a glass-walled rooftop conservatory with closed doors",
+      "a blue and violet evening sky with clouds",
+      "a distant illuminated city skyline",
+      "one two-seat rooftop bench and two rooftop chairs"
+    ],
+    "boundaries": [
+      "Characters cannot enter the conservatory, leave the terrace, climb the parapet, or travel into the skyline.",
+      "There are no accessible stairs, elevators, indoor rooms, vehicles, bars, or usable off-screen facilities.",
+      "The conservatory, lamps, planters, plants, parapet, sky, and skyline are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152,
     "height": 648,
@@ -745,42 +762,12 @@
     },
     {
       "positions": [
-        "bench-1/left-seat",
-        "middle-left"
-      ],
-      "facings": [
-        "left",
-        "right"
-      ]
-    },
-    {
-      "positions": [
         "bench-1/right-seat",
         "middle-left"
       ],
       "facings": [
         "left",
         "right"
-      ]
-    },
-    {
-      "positions": [
-        "chair-1/seat",
-        "middle-center-right"
-      ],
-      "facings": [
-        "right",
-        "left"
-      ]
-    },
-    {
-      "positions": [
-        "chair-2/seat",
-        "middle-right"
-      ],
-      "facings": [
-        "right",
-        "left"
       ]
     }
   ],

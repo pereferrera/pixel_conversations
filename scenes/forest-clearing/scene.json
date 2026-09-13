@@ -1,6 +1,22 @@
 {
   "schemaVersion": 2,
   "id": "forest-clearing",
+  "visibleWorld": {
+    "setting": "A secluded forest clearing beneath large old trees in soft daylight. The entire simulation remains inside the clearing.",
+    "visibleFeatures": [
+      "an open earthen clearing with worn paths and shallow puddles",
+      "large tree trunks, exposed roots, and an overhead canopy",
+      "dense surrounding woodland",
+      "moss, ferns, grasses, shrubs, fallen branches, stones, and boulders",
+      "a narrow sunlit opening deeper in the distant forest",
+      "one two-seat woodland bench and two woodland chairs"
+    ],
+    "boundaries": [
+      "Characters cannot leave the clearing, enter the distant forest, climb the trees, or travel beyond the visible area.",
+      "There are no stairs, buildings, indoor rooms, roads, vehicles, shops, or usable off-screen facilities.",
+      "Trees, roots, puddles, paths, plants, branches, rocks, and distant woodland are fixed background details and cannot be handled or changed."
+    ]
+  },
   "canvas": {
     "width": 1152,
     "height": 648,
@@ -745,42 +761,12 @@
     },
     {
       "positions": [
-        "bench-1/left-seat",
-        "middle-left"
-      ],
-      "facings": [
-        "left",
-        "right"
-      ]
-    },
-    {
-      "positions": [
         "bench-1/right-seat",
         "middle-left"
       ],
       "facings": [
         "left",
         "right"
-      ]
-    },
-    {
-      "positions": [
-        "chair-1/seat",
-        "middle-center-right"
-      ],
-      "facings": [
-        "right",
-        "left"
-      ]
-    },
-    {
-      "positions": [
-        "chair-2/seat",
-        "middle-right"
-      ],
-      "facings": [
-        "right",
-        "left"
       ]
     }
   ],

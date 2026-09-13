@@ -133,15 +133,43 @@ test("example config exposes all six scenes and only asset-backed production cha
 });
 
 test("every scene provides at least twenty standing and seated runtime positions", async () => {
+  const minimumConversationDistanceX = 90;
   for (const path of ["../scenes/community-cafe/scene.json", "../scenes/museum-reading-room/scene.json", "../scenes/riverside-park/scene.json", "../scenes/city-rooftop/scene.json", "../scenes/quiet-beach/scene.json", "../scenes/forest-clearing/scene.json"]) {
     const scene = JSON.parse(await readFile(new URL(path, import.meta.url)));
     assert.ok(scene.positions.length >= 20, `${scene.id} has only ${scene.positions.length} positions`);
     assert.ok(scene.positions.some(({ kind }) => kind === "standing"), `${scene.id} has no standing positions`);
     assert.ok(scene.positions.some(({ kind }) => kind === "seat"), `${scene.id} has no seated positions`);
+    assert.ok(scene.visibleWorld?.setting, `${scene.id} has no visible-world setting`);
+    assert.ok(scene.visibleWorld?.visibleFeatures.length >= 6, `${scene.id} does not inventory its visible features`);
+    assert.ok(scene.visibleWorld?.boundaries.length >= 3, `${scene.id} does not define its physical boundaries`);
     assert.equal(new Set(scene.positions.map(({ id }) => id)).size, scene.positions.length, `${scene.id} has duplicate position ids`);
     const ids = new Set(scene.positions.map(({ id }) => id));
+    const positions = new Map(scene.positions.map((position) => [position.id, position]));
+    const elementInstances = new Map(scene.example.instances.filter(({ kind }) => kind === "element").map((instance) => [instance.id, instance]));
+    const conversationAnchor = (positionId) => {
+      const renderer = positions.get(positionId).renderer;
+      if (renderer.kind === "standing") return renderer.baseline;
+      const instance = elementInstances.get(renderer.elementInstanceId);
+      const element = scene.elementTypes[instance.type];
+      const seat = element.seats.find(({ id }) => id === renderer.seatId);
+      return {
+        x: instance.anchor.x + (seat.contactAnchor.x - element.placementAnchor.x) * scene.canvas.elementDisplayScale,
+        y: instance.anchor.y + (seat.contactAnchor.y - element.placementAnchor.y) * scene.canvas.elementDisplayScale,
+      };
+    };
     for (const pair of scene.conversationPairs) {
       assert.ok(pair.positions.every((id) => ids.has(id)), `${scene.id} has a conversation pair with an unknown position`);
+      const [leftPosition, rightPosition] = pair.positions.map((id) => positions.get(id));
+      const sharesSeatElement = leftPosition.renderer.kind === "seat"
+        && rightPosition.renderer.kind === "seat"
+        && leftPosition.renderer.elementInstanceId === rightPosition.renderer.elementInstanceId;
+      if (!sharesSeatElement) {
+        const [leftAnchor, rightAnchor] = pair.positions.map(conversationAnchor);
+        assert.ok(
+          Math.abs(leftAnchor.x - rightAnchor.x) >= minimumConversationDistanceX,
+          `${scene.id} conversation pair ${pair.positions.join(" / ")} is too close horizontally`,
+        );
+      }
     }
   }
 });
